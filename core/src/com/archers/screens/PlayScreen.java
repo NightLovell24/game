@@ -46,7 +46,7 @@ public class PlayScreen implements Screen {
 		renderer = new OrthogonalTiledMapRenderer(map, batch);
 
 		camera = new OrthographicCamera();
-		viewport = new ExtendViewport(worldWidth / 4, worldHeight / 4, camera);
+		viewport = new ExtendViewport(worldWidth / 8, worldHeight / 8, camera);
 
 //		camera.setToOrtho(false, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());//?
 		player = new Player(new Sprite(new Texture("knight1.png")));

@@ -19,7 +19,7 @@ public class Player extends Sprite {
 	}
 
 	public Vector2 location = new Vector2();
-	private float step = 2f;
+	private float step = 0.5f;
 	public PlayerAdapter adapter;
 	private final float FRAME_RATE_STANDING = 1 / 10f;
 	private final float FRAME_RATE_RUNNING = 1 / 15f;
@@ -35,7 +35,7 @@ public class Player extends Sprite {
 
 		adapter = new PlayerAdapter();
 		currentState = State.STANDING;
-		atlas = new TextureAtlas("entities.pack");
+		atlas = new TextureAtlas("elf.pack");
 		standing = new Animation<TextureRegion>(FRAME_RATE_STANDING, atlas.findRegions("standing"));
 		running = new Animation<TextureRegion>(FRAME_RATE_RUNNING, atlas.findRegions("running"));
 		standing.setFrameDuration(FRAME_RATE_STANDING);
