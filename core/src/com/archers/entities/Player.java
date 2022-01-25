@@ -1,146 +1,107 @@
 package com.archers.entities;
 
+import com.archers.inputadapters.PlayerAdapter;
+import com.archers.screens.PlayScreen;
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.InputProcessor;
-import com.badlogic.gdx.Input.Keys;
+
+import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.Sprite;
+import com.badlogic.gdx.graphics.g2d.TextureAtlas;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
 
 import com.badlogic.gdx.math.Vector2;
 
-public class Player extends Sprite implements InputProcessor {
+public class Player extends Sprite {
 
-	private boolean leftPressed = false;
-	private boolean rightPressed = false;
-	private boolean upPressed = false;
-	private boolean downPressed = false;
+	private enum State {
+		STANDING, RUNNING
+	}
 
-//	private int id;
-	private Vector2 velocity = new Vector2();
-
-	private float speed = 0.2f;
-	private float gravity = 1.8f;
+	public Vector2 location = new Vector2();
 	private float step = 2f;
+	public PlayerAdapter adapter;
+	private final float FRAME_RATE_STANDING = 1 / 10f;
+	private final float FRAME_RATE_RUNNING = 1 / 15f;
+	private State currentState;
+	private TextureAtlas atlas;
+	private Animation<TextureRegion> standing;
+	private Animation<TextureRegion> running;
+	private float standingTime;
+	private float runningTime;
 
 	public Player(Sprite sprite) {
-
 		super(sprite);
+
+		adapter = new PlayerAdapter();
+		currentState = State.STANDING;
+		atlas = new TextureAtlas("entities.pack");
+		standing = new Animation<TextureRegion>(FRAME_RATE_STANDING, atlas.findRegions("standing"));
+		running = new Animation<TextureRegion>(FRAME_RATE_RUNNING, atlas.findRegions("running"));
+		standing.setFrameDuration(FRAME_RATE_STANDING);
+		running.setFrameDuration(FRAME_RATE_RUNNING);
+
 	}
 
 	@Override
 	public void draw(Batch batch) {
-
 		update(Gdx.graphics.getDeltaTime());
+
 		super.draw(batch);
 	}
 
-	@Override
-	public boolean keyDown(int keycode) {
-		switch (keycode) {
-		case Keys.W: {
-			upPressed = true;
 
-			break;
-		}
-		case Keys.S: {
-			downPressed = true;
-			break;
-		}
-		case Keys.A: {
-			leftPressed = true;
-			break;
-		}
-		case Keys.D: {
-			rightPressed = true;
-			break;
-		}
-		}
-		return true;
-	}
 
-	@Override
-	public boolean keyUp(int keycode) {
-		switch (keycode) {
-		case Keys.W: {
-			upPressed = false;
-
-			break;
-		}
-		case Keys.S: {
-			downPressed = false;
-			break;
-		}
-		case Keys.A: {
-			leftPressed = false;
-			break;
-		}
-		case Keys.D: {
-			rightPressed = false;
-			break;
-		}
-		}
-		return true;
-	}
-
-	@Override
-	public boolean keyTyped(char character) {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
-	@Override
-	public boolean touchDown(int screenX, int screenY, int pointer, int button) {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
-	@Override
-	public boolean touchUp(int screenX, int screenY, int pointer, int button) {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
-	@Override
-	public boolean touchDragged(int screenX, int screenY, int pointer) {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
-	@Override
-	public boolean mouseMoved(int screenX, int screenY) {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
-	@Override
-	public boolean scrolled(float amountX, float amountY) {
-		// TODO Auto-generated method stub
-		return false;
+	private void setCoords(float x, float y) {
+		this.setX(x);
+		this.setY(y);
 	}
 
 	private void update(float delta) {
+		boolean isStanding = true;
 
-		if (leftPressed) {
-			velocity.add(-step, 0);
-		}
-		if (rightPressed) {
-			velocity.add(step, 0);
-		}
-		if (upPressed) {
-			velocity.add(0, step);
-		}
-		if (downPressed) {
-			velocity.add(0, -step);
-		}
-		move();
+		if (adapter.leftPressed) {
 
-	}
-	private void move()
-	{
-//		System.out.println("X: " +velocity.x);
-//		System.out.println("Y:" +velocity.y);
-		this.setX(velocity.x);
-		this.setY(velocity.y);
+			if (location.x > PlayScreen.MIN_X) {
+				location.add(-step, 0);
+				isStanding = false;
+			}
+		}
+		if (location.x < PlayScreen.MAX_X)
+			if (adapter.rightPressed) {
+				location.add(step, 0);
+				isStanding = false;
+			}
+		if (location.y < PlayScreen.MAX_Y) {
+			if (adapter.upPressed) {
+				location.add(0, step);
+				isStanding = false;
+			}
+		}
+		if (location.y > PlayScreen.MIN_Y) {
+			if (adapter.downPressed) {
+				location.add(0, -step);
+				isStanding = false;
+			}
+		}
+
+		setCoords(location.x, location.y);
+
+		if (isStanding) {
+			currentState = State.STANDING;
+		} else {
+			currentState = State.RUNNING;
+		}
+
+		if (currentState == State.STANDING) {
+			standingTime += delta;
+			this.setRegion(standing.getKeyFrame(standingTime, true));
+		}
+		if (currentState == State.RUNNING) {
+			runningTime += delta;
+			this.setRegion(running.getKeyFrame(runningTime, true));
+		}
+
 	}
 
 }

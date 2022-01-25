@@ -1,20 +1,18 @@
 package com.archers.main;
 
-
 import com.archers.screens.PlayScreen;
 import com.badlogic.gdx.Game;
-
-
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 
 public class Starter extends Game {
-public static final int WIDTH = 1200;
-public static final int HEIGHT = 1400;
+	public SpriteBatch batch;
+
 
 	@Override
 	public void create() {
-	
-		setScreen(new PlayScreen());
-		
+batch = new SpriteBatch();
+		setScreen(new PlayScreen(batch));
+
 	}
-	
+
 }
