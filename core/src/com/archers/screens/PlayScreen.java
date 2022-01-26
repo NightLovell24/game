@@ -7,8 +7,7 @@ import com.badlogic.gdx.Screen;
 
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
-import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.graphics.g2d.Sprite;
+
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.maps.tiled.TiledMap;
 import com.badlogic.gdx.maps.tiled.TiledMapTileLayer;
@@ -17,13 +16,13 @@ import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.viewport.ExtendViewport;
 
-import java.util.Iterator;
+
 
 public class PlayScreen implements Screen {
 	public static final int WIDTH = 50;
 	public static final int HEIGHT = 50;
 	public static final int PIXELS = 16;
-
+    public static final int CHARACTER_PIXELS = 32;
 	public static final int MIN_X = 0;
 	public static final int MAX_X = (WIDTH - 1) * PIXELS;
 
@@ -34,6 +33,8 @@ public class PlayScreen implements Screen {
 	private TiledMapTileLayer objectLayer;
 	private OrthogonalTiledMapRenderer renderer;
 	private OrthographicCamera camera;
+	
+
 	private SpriteBatch batch;
 	private ExtendViewport viewport;
 	private Player player;
@@ -46,7 +47,7 @@ public class PlayScreen implements Screen {
 	}
 
 	public boolean isInsideWorld(float x, float y) {
-		return x > MIN_X && x < MAX_X && y > MIN_Y && y < MAX_Y;
+		return x >= MIN_X && x + CHARACTER_PIXELS/2 <= MAX_X && y >= MIN_Y && y + CHARACTER_PIXELS/2 <= MAX_Y;
 	}
 
 	public boolean isInsideObstacle(float x, float y) {
@@ -72,10 +73,11 @@ public class PlayScreen implements Screen {
 		renderer = new OrthogonalTiledMapRenderer(map, batch);
 
 		camera = new OrthographicCamera();
-		viewport = new ExtendViewport(worldWidth / 8, worldHeight / 8, camera);
+		viewport = new ExtendViewport(worldWidth / 4, worldHeight / 4, camera);
+
 
 //		camera.setToOrtho(false, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());//?
-		player = new Player(new Sprite(new Texture("knight1.png")));
+		player = new Player();
 		Gdx.input.setInputProcessor(player.adapter);
 
 	}
@@ -102,13 +104,15 @@ public class PlayScreen implements Screen {
 	}
 
 	private void cameraGo() {
-		Vector2 playerPos = player.location;
+		Vector2 playerPos = player.getCenterLocation();
 
 		float cameraX = Math.min(Math.max(playerPos.x, camera.viewportWidth / 2.0f),
 				worldWidth - camera.viewportWidth / 2.0f);
 		float cameraY = Math.min(Math.max(playerPos.y, camera.viewportHeight / 2.0f),
 				worldHeight - camera.viewportHeight / 2.0f);
 		camera.position.set(cameraX, cameraY, 0);
+	
+		
 		camera.update();
 	}
 
@@ -131,5 +135,8 @@ public class PlayScreen implements Screen {
 	public void dispose() {
 		map.dispose();
 		renderer.dispose();
+	}
+	public OrthographicCamera getCamera() {
+		return camera;
 	}
 }
