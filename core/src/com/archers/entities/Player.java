@@ -59,6 +59,7 @@ public class Player extends Sprite {
 
 		super(new Sprite(new Texture("ElfBasic.png")));
 		screen = Starter.getPlayScreen();
+
 		adapter = new PlayerAdapter();
 		currentState = State.STANDING;
 		currentFacing = Facing.RIGHT;

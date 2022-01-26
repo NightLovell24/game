@@ -47,7 +47,9 @@ public class PlayScreen implements Screen {
 	}
 
 	public boolean isInsideWorld(float x, float y) {
+
 		return x >= MIN_X && x + CHARACTER_PIXELS/2 <= MAX_X && y >= MIN_Y && y + CHARACTER_PIXELS/2 <= MAX_Y;
+
 	}
 
 	public boolean isInsideObstacle(float x, float y) {
@@ -58,10 +60,8 @@ public class PlayScreen implements Screen {
 	}
 
 	public boolean isInsideShelter(float x, float y) {
-		TiledMapTileLayer.Cell cell1 = objectLayer.getCell((int) (x / PIXELS), (int) y / PIXELS);
-		TiledMapTileLayer.Cell cell2 = objectLayer.getCell((int) (x / PIXELS) + 1, (int) y / PIXELS);
-		return (cell1 != null && cell1.getTile().getProperties().containsKey("shelter")) ||
-				(cell2 != null && cell2.getTile().getProperties().containsKey("shelter"));
+		TiledMapTileLayer.Cell cell = objectLayer.getCell((int) (x / PIXELS + 0.5), (int) y / PIXELS);
+		return cell != null && cell.getTile().getProperties().containsKey("shelter");
 	}
 
 	@Override
@@ -77,7 +77,9 @@ public class PlayScreen implements Screen {
 
 
 //		camera.setToOrtho(false, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());//?
+
 		player = new Player();
+
 		Gdx.input.setInputProcessor(player.adapter);
 
 	}
