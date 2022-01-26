@@ -1,9 +1,11 @@
 package com.archers.entities;
 
 import com.archers.inputadapters.PlayerAdapter;
+import com.archers.main.Starter;
 import com.archers.screens.PlayScreen;
 import com.badlogic.gdx.Gdx;
 
+import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.Sprite;
@@ -15,9 +17,10 @@ import com.badlogic.gdx.math.Vector2;
 public class Player extends Sprite {
 
 	private enum State {
-		STANDING, RUNNING
+		STANDING, RUNNING, HIDING
 	}
 
+	private PlayScreen screen;
 	public Vector2 location = new Vector2();
 	private float step = 0.5f;
 	public PlayerAdapter adapter;
@@ -29,10 +32,12 @@ public class Player extends Sprite {
 	private Animation<TextureRegion> running;
 	private float standingTime;
 	private float runningTime;
+	private Sprite invisible = new Sprite(new Texture("invisible.png"));
 
 	public Player(Sprite sprite) {
 		super(sprite);
 
+		screen = Starter.getPlayScreen();
 		adapter = new PlayerAdapter();
 		currentState = State.STANDING;
 		atlas = new TextureAtlas("elf.pack");
@@ -40,17 +45,13 @@ public class Player extends Sprite {
 		running = new Animation<TextureRegion>(FRAME_RATE_RUNNING, atlas.findRegions("running"));
 		standing.setFrameDuration(FRAME_RATE_STANDING);
 		running.setFrameDuration(FRAME_RATE_RUNNING);
-
 	}
 
 	@Override
 	public void draw(Batch batch) {
 		update(Gdx.graphics.getDeltaTime());
-
 		super.draw(batch);
 	}
-
-
 
 	private void setCoords(float x, float y) {
 		this.setX(x);
@@ -59,33 +60,30 @@ public class Player extends Sprite {
 
 	private void update(float delta) {
 		boolean isStanding = true;
+		float x = location.x;
+		float y = location.y;
 
 		if (adapter.leftPressed) {
-
-			if (location.x > PlayScreen.MIN_X) {
-				location.add(-step, 0);
-				isStanding = false;
-			}
+			x -= step;
+			isStanding = false;
 		}
-		if (location.x < PlayScreen.MAX_X)
-			if (adapter.rightPressed) {
-				location.add(step, 0);
-				isStanding = false;
-			}
-		if (location.y < PlayScreen.MAX_Y) {
-			if (adapter.upPressed) {
-				location.add(0, step);
-				isStanding = false;
-			}
+		if (adapter.rightPressed)
+			x += step;
+			isStanding = false;
+		if (adapter.upPressed) {
+			y += step;
+			isStanding = false;
 		}
-		if (location.y > PlayScreen.MIN_Y) {
-			if (adapter.downPressed) {
-				location.add(0, -step);
-				isStanding = false;
-			}
+		if (adapter.downPressed) {
+			y -= step;
+			isStanding = false;
 		}
 
-		setCoords(location.x, location.y);
+		if (screen.isInsideWorld(x, y) && !screen.isInsideObstacle(x, y)) {
+			location.x = x;
+			location.y = y;
+			setCoords(x, y);
+		}
 
 		if (isStanding) {
 			currentState = State.STANDING;
@@ -93,15 +91,23 @@ public class Player extends Sprite {
 			currentState = State.RUNNING;
 		}
 
-		if (currentState == State.STANDING) {
-			standingTime += delta;
-			this.setRegion(standing.getKeyFrame(standingTime, true));
-		}
-		if (currentState == State.RUNNING) {
-			runningTime += delta;
-			this.setRegion(running.getKeyFrame(runningTime, true));
+		if (screen.isInsideShelter(x, y)) {
+			currentState = State.HIDING;
 		}
 
+		switch (currentState) {
+			case STANDING:
+				standingTime += delta;
+				this.setRegion(standing.getKeyFrame(standingTime, true));
+				break;
+			case RUNNING:
+				runningTime += delta;
+				this.setRegion(running.getKeyFrame(runningTime, true));
+				break;
+			case HIDING:
+				this.set(invisible);
+				break;
+		}
 	}
 
 }
