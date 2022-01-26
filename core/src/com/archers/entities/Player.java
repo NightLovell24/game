@@ -1,7 +1,6 @@
 package com.archers.entities;
 
 import com.archers.inputadapters.PlayerAdapter;
-import com.archers.main.Starter;
 import com.archers.screens.PlayScreen;
 import com.badlogic.gdx.Gdx;
 
@@ -55,11 +54,11 @@ public class Player extends Sprite {
 	private float downRunningTime;
 	private Texture invisible = new Texture("invisible.png");
 
-	public Player() {
+	public Player(Sprite sprite, PlayScreen screen) {
 
-		super(new Sprite(new Texture("ElfBasic.png")));
-		screen = Starter.getPlayScreen();
+		super(sprite);
 
+		this.screen = screen;
 		adapter = new PlayerAdapter();
 		currentState = State.STANDING;
 		currentFacing = Facing.RIGHT;
@@ -126,41 +125,39 @@ public class Player extends Sprite {
 	}
 
 	private void updateSprite(float delta) {
-
 		switch (currentState) {
-		case STANDING:
-			if (currentFacing == Facing.RIGHT) {
-				rightStandingTime += delta;
-				this.setRegion(rightStanding.getKeyFrame(rightStandingTime, true));
+			case STANDING:
+				if (currentFacing == Facing.RIGHT) {
+					rightStandingTime += delta;
+					this.setRegion(rightStanding.getKeyFrame(rightStandingTime, true));
+				}
+				if (currentFacing == Facing.LEFT) {
+					leftStandingTime += delta;
+					this.setRegion(leftStanding.getKeyFrame(leftStandingTime, true));
+				}
+				if (currentFacing == Facing.DOWN) {
+					downStandingTime += delta;
+					this.setRegion(downStanding.getKeyFrame(downStandingTime, true));
+				}
+				break;
+			case RUNNING:
+				if (currentFacing == Facing.RIGHT) {
+					rightRunningTime += delta;
+					this.setRegion(rightRunning.getKeyFrame(rightRunningTime, true));
+				}
+				if (currentFacing == Facing.LEFT) {
+					leftRunningTime += delta;
+					this.setRegion(leftRunning.getKeyFrame(leftRunningTime, true));
+				}
+				if (currentFacing == Facing.DOWN) {
+					downRunningTime += delta;
+					this.setRegion(downRunning.getKeyFrame(downRunningTime, true));
+				}
+				break;
+			case HIDING:
+				this.setTexture(invisible);
+				break;
 			}
-			if (currentFacing == Facing.LEFT) {
-				leftStandingTime += delta;
-				this.setRegion(leftStanding.getKeyFrame(leftStandingTime, true));
-			}
-			if (currentFacing == Facing.DOWN) {
-				downStandingTime += delta;
-				this.setRegion(downStanding.getKeyFrame(downStandingTime, true));
-			}
-			break;
-		case RUNNING:
-			if (currentFacing == Facing.RIGHT) {
-				rightRunningTime += delta;
-				this.setRegion(rightRunning.getKeyFrame(rightRunningTime, true));
-			}
-			if (currentFacing == Facing.LEFT) {
-				leftRunningTime += delta;
-				this.setRegion(leftRunning.getKeyFrame(leftRunningTime, true));
-			}
-			if (currentFacing == Facing.DOWN) {
-				downRunningTime += delta;
-				this.setRegion(downRunning.getKeyFrame(downRunningTime, true));
-			}
-			break;
-		case HIDING:
-			this.setTexture(invisible);
-			break;
-
-		}
 	}
 
 	private void updateState(float x, float y) {
