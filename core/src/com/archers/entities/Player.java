@@ -34,10 +34,10 @@ public class Player extends Sprite {
 	private float runningTime;
 	private Sprite invisible = new Sprite(new Texture("invisible.png"));
 
-	public Player(Sprite sprite) {
+	public Player(Sprite sprite, PlayScreen screen) {
 		super(sprite);
 
-		screen = Starter.getPlayScreen();
+		this.screen = screen;
 		adapter = new PlayerAdapter();
 		currentState = State.STANDING;
 		atlas = new TextureAtlas("elf.pack");
@@ -67,9 +67,10 @@ public class Player extends Sprite {
 			x -= step;
 			isStanding = false;
 		}
-		if (adapter.rightPressed)
+		if (adapter.rightPressed) {
 			x += step;
 			isStanding = false;
+		}
 		if (adapter.upPressed) {
 			y += step;
 			isStanding = false;

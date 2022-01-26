@@ -17,7 +17,6 @@ import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.viewport.ExtendViewport;
 
-import java.util.Iterator;
 
 public class PlayScreen implements Screen {
 	public static final int WIDTH = 50;
@@ -46,7 +45,7 @@ public class PlayScreen implements Screen {
 	}
 
 	public boolean isInsideWorld(float x, float y) {
-		return x > MIN_X && x < MAX_X && y > MIN_Y && y < MAX_Y;
+		return x >= MIN_X && x < MAX_X && y >= MIN_Y && y < MAX_Y;
 	}
 
 	public boolean isInsideObstacle(float x, float y) {
@@ -57,10 +56,8 @@ public class PlayScreen implements Screen {
 	}
 
 	public boolean isInsideShelter(float x, float y) {
-		TiledMapTileLayer.Cell cell1 = objectLayer.getCell((int) (x / PIXELS), (int) y / PIXELS);
-		TiledMapTileLayer.Cell cell2 = objectLayer.getCell((int) (x / PIXELS) + 1, (int) y / PIXELS);
-		return (cell1 != null && cell1.getTile().getProperties().containsKey("shelter")) ||
-				(cell2 != null && cell2.getTile().getProperties().containsKey("shelter"));
+		TiledMapTileLayer.Cell cell = objectLayer.getCell((int) (x / PIXELS + 0.5), (int) y / PIXELS);
+		return cell != null && cell.getTile().getProperties().containsKey("shelter");
 	}
 
 	@Override
@@ -75,7 +72,7 @@ public class PlayScreen implements Screen {
 		viewport = new ExtendViewport(worldWidth / 8, worldHeight / 8, camera);
 
 //		camera.setToOrtho(false, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());//?
-		player = new Player(new Sprite(new Texture("knight1.png")));
+		player = new Player(new Sprite(new Texture("knight1.png")), this);
 		Gdx.input.setInputProcessor(player.adapter);
 
 	}
