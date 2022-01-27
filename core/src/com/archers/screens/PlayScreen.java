@@ -8,6 +8,8 @@ import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 
+import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.maps.tiled.TiledMap;
 import com.badlogic.gdx.maps.tiled.TiledMapTileLayer;
@@ -48,19 +50,20 @@ public class PlayScreen implements Screen {
 
 	public boolean isInsideWorld(float x, float y) {
 
-		return x >= MIN_X && x + CHARACTER_PIXELS / 2 <= MAX_X && y >= MIN_Y && y + CHARACTER_PIXELS / 2 <= MAX_Y;
-
+		return x >= MIN_X && x + CHARACTER_PIXELS / 2 <= MAX_X
+				&& y >= MIN_Y && y + CHARACTER_PIXELS / 2 <= MAX_Y;
 	}
 
 	public boolean isInsideObstacle(float x, float y) {
-		TiledMapTileLayer.Cell cell1 = objectLayer.getCell((int) (x / PIXELS), (int) y / PIXELS);
-		TiledMapTileLayer.Cell cell2 = objectLayer.getCell((int) (x / PIXELS) + 1, (int) y / PIXELS);
-		return (cell1 != null && cell1.getTile().getProperties().containsKey("blocked"))
-				|| (cell2 != null && cell2.getTile().getProperties().containsKey("blocked"));
+		TiledMapTileLayer.Cell cell1 = objectLayer.getCell((int) (x / PIXELS + 0.5), (int) y / PIXELS);
+		TiledMapTileLayer.Cell cell2 = objectLayer.getCell((int) (x / PIXELS + 1.5), (int) y / PIXELS);
+		return (cell1 != null && cell1.getTile().getProperties().containsKey("blocked")) ||
+				(cell2 != null && cell2.getTile().getProperties().containsKey("blocked"));
+
 	}
 
 	public boolean isInsideShelter(float x, float y) {
-		TiledMapTileLayer.Cell cell = objectLayer.getCell((int) (x / PIXELS + 0.5), (int) y / PIXELS);
+		TiledMapTileLayer.Cell cell = objectLayer.getCell((int) (x / PIXELS + 1), (int) y / PIXELS);
 		return cell != null && cell.getTile().getProperties().containsKey("shelter");
 	}
 
@@ -71,11 +74,11 @@ public class PlayScreen implements Screen {
 		objectLayer = (TiledMapTileLayer) map.getLayers().get(1);
 
 		renderer = new OrthogonalTiledMapRenderer(map, batch);
-
 		camera = new OrthographicCamera();
 		viewport = new ExtendViewport(worldWidth / 4, worldHeight / 4, camera);
 
 //		camera.setToOrtho(false, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());//?
+
 
 		player = new Player(this);
 
