@@ -16,13 +16,14 @@ import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.viewport.ExtendViewport;
 
-
-
 public class PlayScreen implements Screen {
+
 	public static final int WIDTH = 50;
 	public static final int HEIGHT = 50;
+
 	public static final int PIXELS = 16;
-    public static final int CHARACTER_PIXELS = 32;
+	public static final int CHARACTER_PIXELS = 32;
+
 	public static final int MIN_X = 0;
 	public static final int MAX_X = (WIDTH - 1) * PIXELS;
 
@@ -33,8 +34,7 @@ public class PlayScreen implements Screen {
 	private TiledMapTileLayer objectLayer;
 	private OrthogonalTiledMapRenderer renderer;
 	private OrthographicCamera camera;
-	
-
+    
 	private SpriteBatch batch;
 	private ExtendViewport viewport;
 	private Player player;
@@ -48,15 +48,15 @@ public class PlayScreen implements Screen {
 
 	public boolean isInsideWorld(float x, float y) {
 
-		return x >= MIN_X && x + CHARACTER_PIXELS/2 <= MAX_X && y >= MIN_Y && y + CHARACTER_PIXELS/2 <= MAX_Y;
+		return x >= MIN_X && x + CHARACTER_PIXELS / 2 <= MAX_X && y >= MIN_Y && y + CHARACTER_PIXELS / 2 <= MAX_Y;
 
 	}
 
 	public boolean isInsideObstacle(float x, float y) {
 		TiledMapTileLayer.Cell cell1 = objectLayer.getCell((int) (x / PIXELS), (int) y / PIXELS);
 		TiledMapTileLayer.Cell cell2 = objectLayer.getCell((int) (x / PIXELS) + 1, (int) y / PIXELS);
-		return (cell1 != null && cell1.getTile().getProperties().containsKey("blocked")) ||
-				(cell2 != null && cell2.getTile().getProperties().containsKey("blocked"));
+		return (cell1 != null && cell1.getTile().getProperties().containsKey("blocked"))
+				|| (cell2 != null && cell2.getTile().getProperties().containsKey("blocked"));
 	}
 
 	public boolean isInsideShelter(float x, float y) {
@@ -75,10 +75,9 @@ public class PlayScreen implements Screen {
 		camera = new OrthographicCamera();
 		viewport = new ExtendViewport(worldWidth / 4, worldHeight / 4, camera);
 
-
 //		camera.setToOrtho(false, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());//?
 
-		player = new Player();
+		player = new Player(this);
 
 		Gdx.input.setInputProcessor(player.adapter);
 
@@ -106,6 +105,7 @@ public class PlayScreen implements Screen {
 	}
 
 	private void cameraGo() {
+		
 		Vector2 playerPos = player.getCenterLocation();
 
 		float cameraX = Math.min(Math.max(playerPos.x, camera.viewportWidth / 2.0f),
@@ -113,9 +113,9 @@ public class PlayScreen implements Screen {
 		float cameraY = Math.min(Math.max(playerPos.y, camera.viewportHeight / 2.0f),
 				worldHeight - camera.viewportHeight / 2.0f);
 		camera.position.set(cameraX, cameraY, 0);
-	
-		
+
 		camera.update();
+		
 	}
 
 	@Override
@@ -138,6 +138,7 @@ public class PlayScreen implements Screen {
 		map.dispose();
 		renderer.dispose();
 	}
+
 	public OrthographicCamera getCamera() {
 		return camera;
 	}

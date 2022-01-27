@@ -1,7 +1,7 @@
 package com.archers.entities;
 
 import com.archers.inputadapters.PlayerAdapter;
-import com.archers.main.Starter;
+
 import com.archers.screens.PlayScreen;
 import com.badlogic.gdx.Gdx;
 
@@ -55,10 +55,11 @@ public class Player extends Sprite {
 	private float downRunningTime;
 	private Texture invisible = new Texture("invisible.png");
 
-	public Player() {
+	public Player(PlayScreen screen) {
 
 		super(new Sprite(new Texture("ElfBasic.png")));
-		screen = Starter.getPlayScreen();
+		this.screen = screen;
+
 
 		adapter = new PlayerAdapter();
 		currentState = State.STANDING;
