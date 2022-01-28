@@ -2,14 +2,14 @@ package com.archers.screens;
 
 import com.archers.entities.Player;
 
+import com.archers.multiplayer.PlayerData;
+import com.archers.multiplayer.client.Client;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
 
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 
-import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.maps.tiled.TiledMap;
 import com.badlogic.gdx.maps.tiled.TiledMapTileLayer;
@@ -18,14 +18,13 @@ import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.viewport.ExtendViewport;
 
-public class PlayScreen implements Screen {
+import java.util.*;
 
+public class PlayScreen implements Screen {
 	public static final int WIDTH = 50;
 	public static final int HEIGHT = 50;
-
 	public static final int PIXELS = 16;
-	public static final int CHARACTER_PIXELS = 32;
-
+    public static final int CHARACTER_PIXELS = 32;
 	public static final int MIN_X = 0;
 	public static final int MAX_X = (WIDTH - 1) * PIXELS;
 
@@ -36,20 +35,26 @@ public class PlayScreen implements Screen {
 	private TiledMapTileLayer objectLayer;
 	private OrthogonalTiledMapRenderer renderer;
 	private OrthographicCamera camera;
-    
+
 	private SpriteBatch batch;
 	private ExtendViewport viewport;
-	private Player player;
+	private Client client;
+	private Player localPlayer;
+	private Map<String, Player> nicknameToRemotePlayer;
 
 	private float worldWidth = WIDTH * PIXELS;
 	private float worldHeight = HEIGHT * PIXELS;
 
 	public PlayScreen(SpriteBatch batch) {
 		this.batch = batch;
+		nicknameToRemotePlayer = new HashMap<>();
+	}
+
+	public void setClient(Client client) {
+		this.client = client;
 	}
 
 	public boolean isInsideWorld(float x, float y) {
-
 		return x >= MIN_X && x + CHARACTER_PIXELS / 2 <= MAX_X
 				&& y >= MIN_Y && y + CHARACTER_PIXELS / 2 <= MAX_Y;
 	}
@@ -59,7 +64,6 @@ public class PlayScreen implements Screen {
 		TiledMapTileLayer.Cell cell2 = objectLayer.getCell((int) (x / PIXELS + 1.5), (int) y / PIXELS);
 		return (cell1 != null && cell1.getTile().getProperties().containsKey("blocked")) ||
 				(cell2 != null && cell2.getTile().getProperties().containsKey("blocked"));
-
 	}
 
 	public boolean isInsideShelter(float x, float y) {
@@ -79,11 +83,8 @@ public class PlayScreen implements Screen {
 
 //		camera.setToOrtho(false, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());//?
 
-
-		player = new Player(this);
-
-		Gdx.input.setInputProcessor(player.adapter);
-
+		localPlayer = new Player(this);
+		Gdx.input.setInputProcessor(localPlayer.adapter);
 	}
 
 	@Override
@@ -93,13 +94,55 @@ public class PlayScreen implements Screen {
 		renderer.render();
 
 		batch.begin();
-		player.draw(batch);
+		localPlayer.draw(batch);
 //		camera.position.set(player.location, 0);
 		cameraGo();
 		camera.update();
-
+		sendInfoToServer(localPlayer);
+		drawRemotePlayers();
 		batch.end();
+	}
 
+	public void updateRemotePlayers(List<PlayerData> data) {
+		Set<String> activePlayersUsernames = new HashSet<>();
+		for (PlayerData playerData : data) {
+			if (!playerData.getUsername().equals(client.getNickname())) {
+				activePlayersUsernames.add(playerData.getUsername());
+			}
+		}
+		Set<String> usernames = nicknameToRemotePlayer.keySet();
+		for (String username : usernames) {
+			if (!activePlayersUsernames.contains(username)) {
+				nicknameToRemotePlayer.remove(username);
+			}
+		}
+
+		for (PlayerData playerData : data) {
+			if (!playerData.getUsername().equals(client.getNickname())) {
+				Player player = nicknameToRemotePlayer.get(playerData.getUsername());
+				if (player == null) {
+					player = new Player(this);
+					nicknameToRemotePlayer.put(playerData.getUsername(), player);
+				}
+				Vector2 location = player.getLocation();
+				location.x = playerData.getX();
+				location.y = playerData.getY();
+			}
+		}
+	}
+
+	private void drawRemotePlayers() {
+		for (Player player : nicknameToRemotePlayer.values()) {
+			player.draw(batch);
+		}
+	}
+
+	private void sendInfoToServer(Player player) {
+		PlayerData data = new PlayerData();
+		data.setUsername(client.getNickname());
+		data.setX(player.getX());
+		data.setY(player.getY());
+		client.sendPlayerDataToServer(data);
 	}
 
 	@Override
@@ -108,9 +151,7 @@ public class PlayScreen implements Screen {
 	}
 
 	private void cameraGo() {
-		
-		Vector2 playerPos = player.getCenterLocation();
-
+		Vector2 playerPos = localPlayer.getCenterLocation();
 		float cameraX = Math.min(Math.max(playerPos.x, camera.viewportWidth / 2.0f),
 				worldWidth - camera.viewportWidth / 2.0f);
 		float cameraY = Math.min(Math.max(playerPos.y, camera.viewportHeight / 2.0f),
@@ -118,7 +159,6 @@ public class PlayScreen implements Screen {
 		camera.position.set(cameraX, cameraY, 0);
 
 		camera.update();
-		
 	}
 
 	@Override

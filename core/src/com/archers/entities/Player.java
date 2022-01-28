@@ -53,10 +53,10 @@ public class Player extends Sprite {
 	private float downStandingTime;
 	private float downRunningTime;
 	private Texture invisible = new Texture("invisible.png");
+
 	public Player(PlayScreen screen) {
 
 		super(new Sprite(new Texture("ElfBasic.png")));
-		this.screen = screen;
 		this.screen = screen;
 		adapter = new PlayerAdapter();
 		currentState = State.STANDING;
@@ -78,6 +78,10 @@ public class Player extends Sprite {
 
 	}
 
+	public Vector2 getLocation() {
+		return location;
+	}
+
 	@Override
 	public void draw(Batch batch) {
 		update(Gdx.graphics.getDeltaTime());
@@ -87,23 +91,20 @@ public class Player extends Sprite {
 	private void setCoords(float x, float y) {
 		this.setX(x);
 		this.setY(y);
-
 	}
 
 	private void update(float delta) {
-
 		float x = location.x;
 		float y = location.y;
 		centerLocation.x = location.x + 16;
 		centerLocation.y = location.y + 16;
 
 		updateState(x, y);
-		updateFacing(centerLocation.x, centerLocation.y);
-		updateSprite(delta);
+		//updateFacing(centerLocation.x, centerLocation.y);
+		//updateSprite(delta);
 	}
 
 	private void updateFacing(float centerX, float centerY) {
-
 		Vector3 tempVector = screen.getCamera().unproject(new Vector3(adapter.getMouseAngle(), 0));
 		float mouseAngleX = tempVector.x;
 		float mouseAngleY = tempVector.y;
@@ -193,7 +194,6 @@ public class Player extends Sprite {
 		if (screen.isInsideShelter(x, y)) {
 			currentState = State.HIDING;
 		}
-
 	}
 
 }
