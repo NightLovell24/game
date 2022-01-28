@@ -1,21 +1,29 @@
-package com.archers.screens;
+package com.archers.view.screen.netmap;
 
-import com.archers.entities.Player;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
+import com.archers.controller.net.client.Client;
+import com.archers.model.PlayerData;
+import com.archers.view.characters.Character;
+import com.archers.view.entities.Player;
+import com.archers.view.inputadapter.PlayerInputAdapter;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
 
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 
-import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.maps.tiled.TiledMap;
-import com.badlogic.gdx.maps.tiled.TiledMapTileLayer;
+
 import com.badlogic.gdx.maps.tiled.TmxMapLoader;
 import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer;
 import com.badlogic.gdx.math.Vector2;
+
 import com.badlogic.gdx.utils.viewport.ExtendViewport;
 
 public class PlayScreen implements Screen {
@@ -32,57 +40,42 @@ public class PlayScreen implements Screen {
 	public static final int MIN_Y = 0;
 	public static final int MAX_Y = (HEIGHT - 1) * PIXELS;
 
-	private TiledMap map;
-	private TiledMapTileLayer objectLayer;
-	private OrthogonalTiledMapRenderer renderer;
-	private OrthographicCamera camera;
-    
-	private SpriteBatch batch;
-	private ExtendViewport viewport;
-	private Player player;
-
 	private float worldWidth = WIDTH * PIXELS;
 	private float worldHeight = HEIGHT * PIXELS;
+
+	private TiledMap map;
+
+	private OrthogonalTiledMapRenderer renderer;
+	private OrthographicCamera camera;
+	private Client client;
+	private SpriteBatch batch;
+	private ExtendViewport viewport;
+	private Player localPlayer;
+	private PlayerInputAdapter inputAdapter;
+	private Map<String, Player> players; //
 
 	public PlayScreen(SpriteBatch batch) {
 		this.batch = batch;
 	}
 
-	public boolean isInsideWorld(float x, float y) {
-
-		return x >= MIN_X && x + CHARACTER_PIXELS / 2 <= MAX_X
-				&& y >= MIN_Y && y + CHARACTER_PIXELS / 2 <= MAX_Y;
-	}
-
-	public boolean isInsideObstacle(float x, float y) {
-		TiledMapTileLayer.Cell cell1 = objectLayer.getCell((int) (x / PIXELS + 0.5), (int) y / PIXELS);
-		TiledMapTileLayer.Cell cell2 = objectLayer.getCell((int) (x / PIXELS + 1.5), (int) y / PIXELS);
-		return (cell1 != null && cell1.getTile().getProperties().containsKey("blocked")) ||
-				(cell2 != null && cell2.getTile().getProperties().containsKey("blocked"));
-
-	}
-
-	public boolean isInsideShelter(float x, float y) {
-		TiledMapTileLayer.Cell cell = objectLayer.getCell((int) (x / PIXELS + 1), (int) y / PIXELS);
-		return cell != null && cell.getTile().getProperties().containsKey("shelter");
+	public PlayScreen(SpriteBatch batch, Client client) {
+		this.batch = batch;
+		this.client = client;
 	}
 
 	@Override
 	public void show() {
 		TmxMapLoader loader = new TmxMapLoader();
 		map = loader.load("firstmap.tmx");
-		objectLayer = (TiledMapTileLayer) map.getLayers().get(1);
-
+		players = new HashMap<>();
 		renderer = new OrthogonalTiledMapRenderer(map, batch);
 		camera = new OrthographicCamera();
 		viewport = new ExtendViewport(worldWidth / 4, worldHeight / 4, camera);
 
-//		camera.setToOrtho(false, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());//?
+		inputAdapter = new PlayerInputAdapter();
+		localPlayer = new Player(Character.ELF);
 
-
-		player = new Player(this);
-
-		Gdx.input.setInputProcessor(player.adapter);
+		Gdx.input.setInputProcessor(this.inputAdapter);
 
 	}
 
@@ -93,8 +86,8 @@ public class PlayScreen implements Screen {
 		renderer.render();
 
 		batch.begin();
-		player.draw(batch);
-//		camera.position.set(player.location, 0);
+		sendInfoToServer(localPlayer);
+		drawPlayers();
 		cameraGo();
 		camera.update();
 
@@ -108,8 +101,8 @@ public class PlayScreen implements Screen {
 	}
 
 	private void cameraGo() {
-		
-		Vector2 playerPos = player.getCenterLocation();
+
+		Vector2 playerPos = localPlayer.getCenterLocation();
 
 		float cameraX = Math.min(Math.max(playerPos.x, camera.viewportWidth / 2.0f),
 				worldWidth - camera.viewportWidth / 2.0f);
@@ -118,7 +111,50 @@ public class PlayScreen implements Screen {
 		camera.position.set(cameraX, cameraY, 0);
 
 		camera.update();
-		
+
+	}
+
+	public void updateRemotePlayers(List<PlayerData> data) {
+		Set<String> activePlayersUsernames = new HashSet<>();
+		for (PlayerData playerData : data) {
+			if (!playerData.getNickname().equals(client.getNickname())) {
+				activePlayersUsernames.add(playerData.getNickname());
+			}
+		}
+		Set<String> usernames = players.keySet();
+		for (String username : usernames) {
+			if (!activePlayersUsernames.contains(username)) {
+				players.remove(username);
+			}
+		}
+
+		for (PlayerData playerData : data) {
+			if (!playerData.getNickname().equals(client.getNickname())) {
+				Player player = players.get(playerData.getNickname());
+				if (player == null) {
+					player = new Player(Character.ELF);
+					players.put(playerData.getNickname(), player);
+				}
+				Vector2 location = player.getLocation();
+				location.x = playerData.getX();
+				location.y = playerData.getY();
+			}
+		}
+	}
+
+	public void drawPlayers() {
+		localPlayer.draw(batch);
+		for (Player player : players.values()) {
+			player.draw(batch);
+		}
+	}
+
+	private void sendInfoToServer(Player player) {
+		PlayerData data = new PlayerData();
+		data.setNickname(client.getNickname());
+		data.setX(player.getX());
+		data.setY(player.getY());
+		client.sendPlayerDataToServer(data);
 	}
 
 	@Override

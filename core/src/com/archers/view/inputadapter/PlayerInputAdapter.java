@@ -1,17 +1,15 @@
-package com.archers.inputadapters;
+package com.archers.view.inputadapter;
 
 import com.badlogic.gdx.InputProcessor;
-import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.Input.Keys;
+import com.badlogic.gdx.math.Vector2;
 
-public class PlayerAdapter implements InputProcessor {
+public class PlayerInputAdapter implements InputProcessor {
 	public boolean leftPressed = false;
 	public boolean rightPressed = false;
 	public boolean upPressed = false;
 	public boolean downPressed = false;
 	private Vector2 mouseAngle = new Vector2();
-
-	
 
 	@Override
 	public boolean keyDown(int keycode) {
@@ -96,6 +94,7 @@ public class PlayerAdapter implements InputProcessor {
 		// TODO Auto-generated method stub
 		return false;
 	}
+
 	public Vector2 getMouseAngle() {
 		return mouseAngle;
 	}

@@ -1,26 +1,23 @@
-package com.archers.screens;
+package com.archers.view.screen.menu;
 
 import com.archers.main.Starter;
-
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
-import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.audio.Music;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
-import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.Stage;
-import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
-import com.badlogic.gdx.scenes.scene2d.ui.TextField;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.utils.viewport.ExtendViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 
-public class JoinScreen implements Screen {
+public class MainScreen implements Screen {
 
 	private SpriteBatch batch;
 	private Starter game;
@@ -31,11 +28,16 @@ public class JoinScreen implements Screen {
 	private Skin skin;
 	private final float WIDTH = 640;
 	private final float HEIGHT = 480;
+	private Music music;
 
-	public JoinScreen(SpriteBatch batch, Starter game) {
+	public MainScreen(SpriteBatch batch, Starter game) {
+
 		this.batch = batch;
 		this.game = game;
 		skin = new Skin(Gdx.files.internal("uiskin.json"));
+		music = Gdx.audio.newMusic(Gdx.files.internal("mainmusic.mp3"));
+		music.setLooping(true);
+		music.play();
 
 		camera = new OrthographicCamera();
 
@@ -45,47 +47,53 @@ public class JoinScreen implements Screen {
 		camera.update();
 
 		stage = new Stage(viewport, this.batch);
+
 	}
 
 	@Override
 	public void show() {
+
 		Gdx.input.setInputProcessor(stage);
 		Table mainTable = new Table();
 		mainTable.setFillParent(true);
 		mainTable.top();
 
-		
-		Label nicknameLabel = new Label("Nickname: ", new Label.LabelStyle(new BitmapFont(), Color.WHITE));
-		Label adressLabel = new Label("Adress: ", new Label.LabelStyle(new BitmapFont(), Color.WHITE));
-		TextButton connectButton = new TextButton("Connect", skin);
-		TextButton menuButton = new TextButton("Menu", skin);
-		TextField nickname = new TextField("", skin);
-		TextField adress = new TextField("", skin);
-		
-		
+		TextButton joinButton = new TextButton("Join to the server", skin);
+		TextButton createButton = new TextButton("Create the server", skin);
+		TextButton optionsButton = new TextButton("Options", skin);
+		TextButton exitButton = new TextButton("Exit", skin);
 
-		connectButton.addListener(new ClickListener() {
+		joinButton.addListener(new ClickListener() {
 			@Override
 			public void clicked(InputEvent event, float x, float y) {
-				// CONNECT LOGICA
+				game.setScreen(new JoinScreen(batch, game));
 			}
 		});
-		menuButton.addListener(new ClickListener() {
+		createButton.addListener(new ClickListener() {
 			@Override
 			public void clicked(InputEvent event, float x, float y) {
-				game.setScreen(game.getMainScreen());
+//				game.setScreen(new CreateScreen());
 			}
 		});
-		mainTable.add(nicknameLabel);
-		
-		mainTable.add(nickname);
+		optionsButton.addListener(new ClickListener() {
+			@Override
+			public void clicked(InputEvent event, float x, float y) {
+//				game.setScreen(new CreateScreen());
+			}
+		});
+		exitButton.addListener(new ClickListener() {
+			@Override
+			public void clicked(InputEvent event, float x, float y) {
+				Gdx.app.exit();
+			}
+		});
+		mainTable.add(joinButton);
 		mainTable.row();
-		mainTable.add(adressLabel);
-		mainTable.add(adress);
+		mainTable.add(createButton);
 		mainTable.row();
-		mainTable.add(connectButton);
+		mainTable.add(optionsButton);
 		mainTable.row();
-		mainTable.add(menuButton);
+		mainTable.add(exitButton);
 
 		stage.addActor(mainTable);
 
@@ -119,14 +127,14 @@ public class JoinScreen implements Screen {
 
 	@Override
 	public void hide() {
-		dispose();
+		
 
 	}
 
 	@Override
 	public void dispose() {
 		skin.dispose();
-
+		music.dispose();
 		stage.dispose();
 
 	}

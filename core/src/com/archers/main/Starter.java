@@ -1,12 +1,11 @@
 package com.archers.main;
 
-import com.archers.screens.MainScreen;
-
+import com.archers.view.screen.menu.MainScreen;
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 
 public class Starter extends Game {
-	public SpriteBatch batch;
+	private SpriteBatch batch;
 	private MainScreen mainScreen;
 
 	public MainScreen getMainScreen() {
