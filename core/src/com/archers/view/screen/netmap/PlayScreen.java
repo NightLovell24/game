@@ -1,3 +1,4 @@
+
 package com.archers.view.screen.netmap;
 
 import java.util.HashMap;
@@ -11,6 +12,7 @@ import com.archers.model.PlayerData;
 import com.archers.view.characters.Character;
 import com.archers.view.entities.Player;
 import com.archers.view.inputadapter.PlayerInputAdapter;
+
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
 
@@ -26,14 +28,13 @@ import com.badlogic.gdx.math.Vector2;
 
 import com.badlogic.gdx.utils.viewport.ExtendViewport;
 
-public class PlayScreen implements Screen {
+import java.util.*;
 
+public class PlayScreen implements Screen {
 	public static final int WIDTH = 50;
 	public static final int HEIGHT = 50;
-
 	public static final int PIXELS = 16;
-	public static final int CHARACTER_PIXELS = 32;
-
+    public static final int CHARACTER_PIXELS = 32;
 	public static final int MIN_X = 0;
 	public static final int MAX_X = (WIDTH - 1) * PIXELS;
 
@@ -47,6 +48,7 @@ public class PlayScreen implements Screen {
 
 	private OrthogonalTiledMapRenderer renderer;
 	private OrthographicCamera camera;
+
 	private Client client;
 	private SpriteBatch batch;
 	private ExtendViewport viewport;
@@ -54,13 +56,17 @@ public class PlayScreen implements Screen {
 	private PlayerInputAdapter inputAdapter;
 	private Map<String, Player> players; //
 
+
 	public PlayScreen(SpriteBatch batch) {
 		this.batch = batch;
+		nicknameToRemotePlayer = new HashMap<>();
 	}
+
 
 	public PlayScreen(SpriteBatch batch, Client client) {
 		this.batch = batch;
 		this.client = client;
+
 	}
 
 	@Override
@@ -75,7 +81,9 @@ public class PlayScreen implements Screen {
 		inputAdapter = new PlayerInputAdapter();
 		localPlayer = new Player(Character.ELF);
 
+
 		Gdx.input.setInputProcessor(this.inputAdapter);
+
 
 	}
 
@@ -86,13 +94,58 @@ public class PlayScreen implements Screen {
 		renderer.render();
 
 		batch.begin();
+
 		sendInfoToServer(localPlayer);
 		drawPlayers();
+
+
 		cameraGo();
 		camera.update();
-
+		sendInfoToServer(localPlayer);
+		drawRemotePlayers();
 		batch.end();
+	}
 
+	public void updateRemotePlayers(List<PlayerData> data) {
+		Set<String> activePlayersUsernames = new HashSet<>();
+		for (PlayerData playerData : data) {
+			if (!playerData.getUsername().equals(client.getNickname())) {
+				activePlayersUsernames.add(playerData.getUsername());
+			}
+		}
+		Set<String> usernames = nicknameToRemotePlayer.keySet();
+		for (String username : usernames) {
+			if (!activePlayersUsernames.contains(username)) {
+				nicknameToRemotePlayer.remove(username);
+			}
+		}
+
+		for (PlayerData playerData : data) {
+			if (!playerData.getUsername().equals(client.getNickname())) {
+				Player player = nicknameToRemotePlayer.get(playerData.getUsername());
+				if (player == null) {
+					player = new Player(this);
+					nicknameToRemotePlayer.put(playerData.getUsername(), player);
+				}
+				Vector2 location = player.getLocation();
+				location.x = playerData.getX();
+				location.y = playerData.getY();
+			}
+		}
+	}
+
+	private void drawRemotePlayers() {
+		for (Player player : nicknameToRemotePlayer.values()) {
+			player.draw(batch);
+		}
+	}
+
+	private void sendInfoToServer(Player player) {
+		PlayerData data = new PlayerData();
+		data.setUsername(client.getNickname());
+		data.setX(player.getX());
+		data.setY(player.getY());
+		client.sendPlayerDataToServer(data);
 	}
 
 	@Override
@@ -111,6 +164,7 @@ public class PlayScreen implements Screen {
 		camera.position.set(cameraX, cameraY, 0);
 
 		camera.update();
+
 
 	}
 
@@ -155,6 +209,7 @@ public class PlayScreen implements Screen {
 		data.setX(player.getX());
 		data.setY(player.getY());
 		client.sendPlayerDataToServer(data);
+
 	}
 
 	@Override

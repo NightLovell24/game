@@ -2,9 +2,11 @@ package com.archers.view.screen.menu;
 
 import java.io.IOException;
 
+
 import com.archers.controller.net.client.Client;
 import com.archers.main.Starter;
 import com.archers.view.screen.netmap.PlayScreen;
+
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.Color;
@@ -22,6 +24,8 @@ import com.badlogic.gdx.scenes.scene2d.ui.TextField;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.utils.viewport.ExtendViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
+
+import java.io.IOException;
 
 public class JoinScreen implements Screen {
 
@@ -63,6 +67,7 @@ public class JoinScreen implements Screen {
 		TextButton menuButton = new TextButton("Menu", skin);
 		TextField nickname = new TextField("", skin);
 		TextField adress = new TextField("", skin);
+
 		Label wrongIpLabel = new Label("Cannot connect to the given address.",
 				new Label.LabelStyle(new BitmapFont(), Color.RED));
 		wrongIpLabel.setVisible(false);
@@ -70,11 +75,13 @@ public class JoinScreen implements Screen {
 				new Label.LabelStyle(new BitmapFont(), Color.RED));
 		nicknameUsedLabel.setVisible(false);
 
+
 		connectButton.addListener(new ClickListener() {
 			@Override
 			public void clicked(InputEvent event, float x, float y) {
 				String nick = nickname.getText();
 				String ip = adress.getText();
+
 
 				if (nick == null || nick.trim().isEmpty())
 					return;
@@ -85,10 +92,12 @@ public class JoinScreen implements Screen {
 					client = new Client(ip, nick);
 					screen = new PlayScreen(batch, client);
 					client.setScreen(screen);
+
 				} catch (IllegalArgumentException e) {
 					wrongIpLabel.setVisible(false);
 					nicknameUsedLabel.setVisible(true);
 					client = null;
+
 					screen = null;
 				} catch (IOException e) {
 					wrongIpLabel.setVisible(true);
@@ -100,6 +109,7 @@ public class JoinScreen implements Screen {
 					game.setScreen(screen);
 
 				}
+
 
 			}
 		});
@@ -123,7 +133,7 @@ public class JoinScreen implements Screen {
 		mainTable.add(wrongIpLabel);
 		mainTable.row();
 		mainTable.add(nicknameUsedLabel);
-		
+
 
 		stage.addActor(mainTable);
 
@@ -158,15 +168,12 @@ public class JoinScreen implements Screen {
 	@Override
 	public void hide() {
 		dispose();
-
 	}
 
 	@Override
 	public void dispose() {
 		skin.dispose();
-
 		stage.dispose();
-
 	}
 
 }
