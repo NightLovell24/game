@@ -10,20 +10,20 @@ public class PlayerData {
 		LEFT, RIGHT, DOWN, UP
 	}
 
-	private int id;
+	public PlayerData(String nickname) {
+
+		this.nickname = nickname;
+	}
+
+	public PlayerData() {
+
+	}
+
 	private String nickname;
 	private float x;
 	private float y;
 	private State currentState;
 	private Facing currentFacing;
-
-	public int getId() {
-		return id;
-	}
-
-	public void setId(int id) {
-		this.id = id;
-	}
 
 	public String getNickname() {
 		return nickname;

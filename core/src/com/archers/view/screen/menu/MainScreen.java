@@ -1,7 +1,6 @@
 package com.archers.view.screen.menu;
 
 import com.archers.main.Starter;
-
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.audio.Music;
@@ -19,6 +18,7 @@ import com.badlogic.gdx.utils.viewport.ExtendViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 
 public class MainScreen implements Screen {
+
 	private SpriteBatch batch;
 	private Starter game;
 	private Stage stage;
@@ -31,6 +31,7 @@ public class MainScreen implements Screen {
 	private Music music;
 
 	public MainScreen(SpriteBatch batch, Starter game) {
+
 		this.batch = batch;
 		this.game = game;
 		skin = new Skin(Gdx.files.internal("uiskin.json"));
@@ -51,6 +52,7 @@ public class MainScreen implements Screen {
 
 	@Override
 	public void show() {
+
 		Gdx.input.setInputProcessor(stage);
 		Table mainTable = new Table();
 		mainTable.setFillParent(true);
@@ -70,8 +72,7 @@ public class MainScreen implements Screen {
 		createButton.addListener(new ClickListener() {
 			@Override
 			public void clicked(InputEvent event, float x, float y) {
-				//new Server();
-				//open a screen with a nickname input
+//				game.setScreen(new CreateScreen());
 			}
 		});
 		optionsButton.addListener(new ClickListener() {
@@ -86,7 +87,6 @@ public class MainScreen implements Screen {
 				Gdx.app.exit();
 			}
 		});
-
 		mainTable.add(joinButton);
 		mainTable.row();
 		mainTable.add(createButton);

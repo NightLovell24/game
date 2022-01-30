@@ -1,18 +1,18 @@
-
 package com.archers.view.screen.netmap;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.io.IOException;
 
-import com.archers.controller.net.client.Client;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
+import com.archers.controller.net.client.PacketDispatcher;
+import com.archers.controller.net.client.PacketType;
+import com.archers.model.PacketPlayer;
 import com.archers.model.PlayerData;
 import com.archers.view.characters.Character;
-import com.archers.view.entities.Player;
+import com.archers.view.entities.LocalPlayer;
+import com.archers.view.entities.RemotedPlayer;
 import com.archers.view.inputadapter.PlayerInputAdapter;
-
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
 
@@ -28,13 +28,14 @@ import com.badlogic.gdx.math.Vector2;
 
 import com.badlogic.gdx.utils.viewport.ExtendViewport;
 
-import java.util.*;
-
 public class PlayScreen implements Screen {
+
 	public static final int WIDTH = 50;
 	public static final int HEIGHT = 50;
+
 	public static final int PIXELS = 16;
-    public static final int CHARACTER_PIXELS = 32;
+	public static final int CHARACTER_PIXELS = 32;
+
 	public static final int MIN_X = 0;
 	public static final int MAX_X = (WIDTH - 1) * PIXELS;
 
@@ -49,41 +50,43 @@ public class PlayScreen implements Screen {
 	private OrthogonalTiledMapRenderer renderer;
 	private OrthographicCamera camera;
 
-	private Client client;
+	private String nickname;
 	private SpriteBatch batch;
 	private ExtendViewport viewport;
-	private Player localPlayer;
+	private LocalPlayer localPlayer;
 	private PlayerInputAdapter inputAdapter;
-	private Map<String, Player> players; //
+	private Map<String, RemotedPlayer> players; //
+	private PacketDispatcher packetDispatcher;
 
-
-	public PlayScreen(SpriteBatch batch) {
+	public PlayScreen(SpriteBatch batch, String nickname, PacketDispatcher packetDispatcher) {
+		this.nickname = nickname;
 		this.batch = batch;
-		nicknameToRemotePlayer = new HashMap<>();
-	}
-
-
-	public PlayScreen(SpriteBatch batch, Client client) {
-		this.batch = batch;
-		this.client = client;
-
+		this.packetDispatcher = packetDispatcher;
 	}
 
 	@Override
 	public void show() {
 		TmxMapLoader loader = new TmxMapLoader();
 		map = loader.load("firstmap.tmx");
-		players = new HashMap<>();
+		players = new ConcurrentHashMap<>();
 		renderer = new OrthogonalTiledMapRenderer(map, batch);
 		camera = new OrthographicCamera();
 		viewport = new ExtendViewport(worldWidth / 4, worldHeight / 4, camera);
 
 		inputAdapter = new PlayerInputAdapter();
-		localPlayer = new Player(Character.ELF);
+		localPlayer = new LocalPlayer(Character.ELF, this.inputAdapter, nickname);
 
+		new Thread(() -> {
+			try {
+				packetDispatcher.proccessPacket(this);
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}) {
 
+		}.start();
 		Gdx.input.setInputProcessor(this.inputAdapter);
-
 
 	}
 
@@ -94,58 +97,14 @@ public class PlayScreen implements Screen {
 		renderer.render();
 
 		batch.begin();
-
-		sendInfoToServer(localPlayer);
+		packetDispatcher.dispatchMessage(new PacketPlayer(localPlayer.getData(), PacketType.CHECK));
+		packetDispatcher.dispatchMessage(new PacketPlayer(localPlayer.getData(), PacketType.MOVE));
 		drawPlayers();
-
-
 		cameraGo();
 		camera.update();
-		sendInfoToServer(localPlayer);
-		drawRemotePlayers();
+
 		batch.end();
-	}
 
-	public void updateRemotePlayers(List<PlayerData> data) {
-		Set<String> activePlayersUsernames = new HashSet<>();
-		for (PlayerData playerData : data) {
-			if (!playerData.getUsername().equals(client.getNickname())) {
-				activePlayersUsernames.add(playerData.getUsername());
-			}
-		}
-		Set<String> usernames = nicknameToRemotePlayer.keySet();
-		for (String username : usernames) {
-			if (!activePlayersUsernames.contains(username)) {
-				nicknameToRemotePlayer.remove(username);
-			}
-		}
-
-		for (PlayerData playerData : data) {
-			if (!playerData.getUsername().equals(client.getNickname())) {
-				Player player = nicknameToRemotePlayer.get(playerData.getUsername());
-				if (player == null) {
-					player = new Player(this);
-					nicknameToRemotePlayer.put(playerData.getUsername(), player);
-				}
-				Vector2 location = player.getLocation();
-				location.x = playerData.getX();
-				location.y = playerData.getY();
-			}
-		}
-	}
-
-	private void drawRemotePlayers() {
-		for (Player player : nicknameToRemotePlayer.values()) {
-			player.draw(batch);
-		}
-	}
-
-	private void sendInfoToServer(Player player) {
-		PlayerData data = new PlayerData();
-		data.setUsername(client.getNickname());
-		data.setX(player.getX());
-		data.setY(player.getY());
-		client.sendPlayerDataToServer(data);
 	}
 
 	@Override
@@ -165,51 +124,29 @@ public class PlayScreen implements Screen {
 
 		camera.update();
 
-
 	}
 
-	public void updateRemotePlayers(List<PlayerData> data) {
-		Set<String> activePlayersUsernames = new HashSet<>();
-		for (PlayerData playerData : data) {
-			if (!playerData.getNickname().equals(client.getNickname())) {
-				activePlayersUsernames.add(playerData.getNickname());
-			}
-		}
-		Set<String> usernames = players.keySet();
-		for (String username : usernames) {
-			if (!activePlayersUsernames.contains(username)) {
-				players.remove(username);
-			}
-		}
-
-		for (PlayerData playerData : data) {
-			if (!playerData.getNickname().equals(client.getNickname())) {
-				Player player = players.get(playerData.getNickname());
-				if (player == null) {
-					player = new Player(Character.ELF);
-					players.put(playerData.getNickname(), player);
-				}
-				Vector2 location = player.getLocation();
-				location.x = playerData.getX();
-				location.y = playerData.getY();
-			}
+	public void updatePlayer(PlayerData data) {
+		RemotedPlayer player = players.get(data.getNickname());
+		if (player != null) {
+			player.setLocation(new Vector2(data.getX(), data.getY()));
 		}
 	}
 
-	public void drawPlayers() {
+	public void joinPlayer(PlayerData data) {
+		RemotedPlayer player = new RemotedPlayer(Character.ELF, data.getNickname());
+		players.put(data.getNickname(), player);
+	}
+
+	public void removePlayer(String nickname) {
+		players.remove(nickname);
+	}
+
+	private void drawPlayers() {
 		localPlayer.draw(batch);
-		for (Player player : players.values()) {
+		for (RemotedPlayer player : players.values()) {
 			player.draw(batch);
 		}
-	}
-
-	private void sendInfoToServer(Player player) {
-		PlayerData data = new PlayerData();
-		data.setNickname(client.getNickname());
-		data.setX(player.getX());
-		data.setY(player.getY());
-		client.sendPlayerDataToServer(data);
-
 	}
 
 	@Override
