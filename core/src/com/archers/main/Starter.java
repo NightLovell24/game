@@ -8,9 +8,12 @@ public class Starter extends Game {
 	private SpriteBatch batch;
 	private MainScreen mainScreen;
 
-	public MainScreen getMainScreen() {
-		return mainScreen;
+	
+	public void setMainScreen()
+	{
+		this.setScreen(mainScreen);
 	}
+
 
 	@Override
 	public void create() {

@@ -54,8 +54,6 @@ public class PacketDispatcher {
 			socket.setSoTimeout(TIMEOUT * 1000);
 			try {
 				socket.receive(dataPacket);
-				
-				
 
 				return true;
 			} catch (SocketTimeoutException e) {
@@ -82,16 +80,16 @@ public class PacketDispatcher {
 			socket.receive(packet);
 
 			String received = new String(packet.getData(), 0, packet.getLength());
-			
+//			System.out.println(received);
 			PacketPlayer packetPlayer = mapper.readValue(received, PacketPlayer.class);
 			switch (packetPlayer.getType()) {
 			case MOVE:
+
 				movePlayer(packetPlayer, screen);
 				break;
-			case CHECK:
-				checkPlayer(packetPlayer);
-				break;
+
 			case JOIN:
+
 				joinPlayer(packetPlayer, screen);
 				break;
 			case LEAVE:
@@ -111,10 +109,6 @@ public class PacketDispatcher {
 
 	private void joinPlayer(PacketPlayer packetPlayer, PlayScreen screen) {
 		screen.joinPlayer(packetPlayer.getData());
-	}
-
-	private void checkPlayer(PacketPlayer packetPlayer) {
-		dispatchMessage(packetPlayer);
 	}
 
 	public void dispatchMessage(PacketPlayer packetPlayer) {

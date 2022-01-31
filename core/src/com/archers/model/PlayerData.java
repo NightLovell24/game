@@ -65,4 +65,10 @@ public class PlayerData {
 		this.currentFacing = currentFacing;
 	}
 
+	@Override
+	public String toString() {
+		return "nickname : " + nickname + " x : " + x + " y: " + y + " currentState : " + currentState
+				+ " currentFacing : " + currentFacing;
+	}
+
 }

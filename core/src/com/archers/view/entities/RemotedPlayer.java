@@ -1,45 +1,47 @@
 package com.archers.view.entities;
 
 import com.archers.model.PlayerData;
-import com.archers.view.characters.Character;
 
-import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.Sprite;
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Vector2;
 
-public class RemotedPlayer extends Sprite {
+public class RemotedPlayer {
 
 	private PlayerData data;
 
 	private Vector2 centerLocation;
 	private Vector2 location;
 
-	
+	private Sprite entitySprite;
+//	private Sprite nicknameSprite;
 
-	public RemotedPlayer(Character character, String nickname) {
-		super(new Texture("ElfBasic.png"));
+	public RemotedPlayer(String nickname) {
 
 		data = new PlayerData(nickname);
 		centerLocation = new Vector2();
 		location = new Vector2();
 	}
 
-	@Override
-	public void draw(Batch batch) {
-
-		setCoords();
-		super.draw(batch);
+	public void setCoords(float x, float y)
+	{
+		data.setX(x);
+		data.setY(y);
 	}
-
+	
 	private void setCoords() {
-		this.setX(data.getX());
-		this.setY(data.getY());
 
 		location.x = data.getX();
 		location.y = data.getY();
 		centerLocation.x = data.getX() + 16;
 		centerLocation.y = data.getY() + 16;
+
+	}
+
+	public void draw(SpriteBatch batch) {
+		setCoords();
+
+		batch.draw(entitySprite, location.x, location.y);
 
 	}
 
@@ -58,8 +60,15 @@ public class RemotedPlayer extends Sprite {
 	public String getNickname() {
 		return data.getNickname();
 	}
-	public void setLocation(Vector2 location) {
-		this.location = location;
+
+	
+
+	public void setEntitySprite(Sprite entitySprite) {
+		this.entitySprite = entitySprite;
+	}
+
+	public Sprite getEntitySprite() {
+		return entitySprite;
 	}
 
 }

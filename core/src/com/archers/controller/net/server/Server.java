@@ -6,6 +6,8 @@ import java.net.DatagramSocket;
 import java.net.InetAddress;
 
 import java.net.UnknownHostException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -21,7 +23,7 @@ public class Server {
 
 	private DatagramSocket socket;
 	private static final int port = 24120;
-	private static final int COUNT_OF_COPIES = 3;
+
 	private static final int TIMEOUT = 5;
 	private Map<String, Client> players;
 
@@ -37,7 +39,7 @@ public class Server {
 			players = new ConcurrentHashMap<>();
 
 			socket = new DatagramSocket(port);
-			System.out.println("Server is started!");
+			serverMessage("Server is started!");
 			listenPackets();
 
 		} catch (IOException e) {
@@ -45,6 +47,13 @@ public class Server {
 		}
 	}
 
+	private void serverMessage(String msg)
+	{
+		Date date = new Date();
+		SimpleDateFormat format = new SimpleDateFormat("HH:mm:ss");
+		System.out.println("["+format.format(date) + "]" + " " + msg);
+	}
+	
 	private void listenPackets() throws IOException {
 		DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
 		while (true) {
@@ -62,6 +71,7 @@ public class Server {
 		PacketPlayer packetPlayer = mapper.readValue(message, PacketPlayer.class);
 		switch (packetPlayer.getType()) {
 		case JOIN:
+
 			joinPlayer(packetPlayer, ip, port);
 			break;
 
@@ -73,16 +83,12 @@ public class Server {
 
 			movePlayer(packetPlayer);
 			break;
-		case CHECK:
-
-			checkPlayer(packetPlayer.getData().getNickname());
-			break;
 
 		}
 
 	}
 
-	private void checkPlayer(String nickname) {
+	private void refreshPlayer(String nickname) {
 		Client client = players.get(nickname);
 		client.setConnectionRefreshed(true);
 	}
@@ -90,10 +96,10 @@ public class Server {
 	private void joinPlayer(PacketPlayer packetPlayer, String ip, int port) {
 		if (players.get(packetPlayer.getData().getNickname()) == null) {
 			players.put(packetPlayer.getData().getNickname(), new Client(packetPlayer.getData(), ip, port));
-			System.out.println(packetPlayer.getData().getNickname() + " " + ip + ":" + port + " joined to the server!");
+			serverMessage(packetPlayer.getData().getNickname() + " " + ip + ":" + port + " joined to the server!");
 
 			new ClientListener(packetPlayer.getData().getNickname());
-			dispatchMessage(packetPlayer);
+			dispatchMessageAll(packetPlayer);
 		}
 	}
 
@@ -102,8 +108,8 @@ public class Server {
 		if (players.get(nickname) != null) {
 			players.remove(nickname);
 
-			System.out.println(nickname + " leaved from the server!");
-			dispatchMessage(packetPlayer);
+			serverMessage(nickname + " leaved from the server!");
+			dispatchMessageAll(packetPlayer);
 		}
 	}
 
@@ -121,12 +127,6 @@ public class Server {
 
 			while (players.get(nickname).isConnectionRefreshed()) {
 				Client client = players.get(nickname);
-
-				PacketPlayer packetPlayer = new PacketPlayer(client.getData(), PacketType.CHECK);
-				for (int i = 0; i < COUNT_OF_COPIES; i++) {
-					dispatchMessage(packetPlayer);
-//					System.out.println("Dispatched..");
-				}
 				client.setConnectionRefreshed(false);
 				try {
 					Thread.sleep(TIMEOUT * 1000);
@@ -148,22 +148,18 @@ public class Server {
 
 	private void movePlayer(PacketPlayer packetPlayer) {
 // validation
-		dispatchMessage(packetPlayer);
+		refreshPlayer(packetPlayer.getData().getNickname());
+		dispatchMessageAll(packetPlayer);
 
 	}
 
-	private void dispatchMessage(PacketPlayer packetPlayer) {
+	private void dispatchMessageAll(PacketPlayer packetPlayer) {
 		for (Client client : players.values()) {
-			if (packetPlayer.getType() == PacketType.JOIN) {
-				if (packetPlayer.getData().getNickname().equals(client.getData().getNickname())) {
-					continue;
-				}
-			}
 			try {
 				String message = mapper.writeValueAsString(packetPlayer);
 				InetAddress adress = InetAddress.getByName(client.getIp());
 				int port = client.getPort();
-				
+
 				byte[] buf = message.getBytes();
 				DatagramPacket packet = new DatagramPacket(buf, buf.length, adress, port);
 				socket.send(packet);

@@ -16,6 +16,8 @@ public class LocalPlayer extends Sprite {
 	
 	private Vector2 centerLocation;
 	private Vector2 location;
+	
+
 	private PlayerInputAdapter adapter;
 	private float step = 0.8f;
 
@@ -76,6 +78,9 @@ public class LocalPlayer extends Sprite {
 
 	public String getNickname() {
 		return data.getNickname();
+	}
+	public void setLocation(Vector2 location) {
+		this.location = location;
 	}
 
 }

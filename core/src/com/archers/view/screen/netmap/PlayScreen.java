@@ -1,12 +1,14 @@
 package com.archers.view.screen.netmap;
 
 import java.io.IOException;
-
+import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+
+
 
 import com.archers.controller.net.client.PacketDispatcher;
 import com.archers.controller.net.client.PacketType;
+
 import com.archers.model.PacketPlayer;
 import com.archers.model.PlayerData;
 import com.archers.view.characters.Character;
@@ -18,7 +20,8 @@ import com.badlogic.gdx.Screen;
 
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
-
+import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.maps.tiled.TiledMap;
 
@@ -59,33 +62,36 @@ public class PlayScreen implements Screen {
 	private PacketDispatcher packetDispatcher;
 
 	public PlayScreen(SpriteBatch batch, String nickname, PacketDispatcher packetDispatcher) {
+
 		this.nickname = nickname;
 		this.batch = batch;
 		this.packetDispatcher = packetDispatcher;
+
 	}
 
 	@Override
 	public void show() {
 		TmxMapLoader loader = new TmxMapLoader();
 		map = loader.load("firstmap.tmx");
-		players = new ConcurrentHashMap<>();
+
 		renderer = new OrthogonalTiledMapRenderer(map, batch);
 		camera = new OrthographicCamera();
 		viewport = new ExtendViewport(worldWidth / 4, worldHeight / 4, camera);
-
+		players = new HashMap<>();
 		inputAdapter = new PlayerInputAdapter();
 		localPlayer = new LocalPlayer(Character.ELF, this.inputAdapter, nickname);
-
 		new Thread(() -> {
 			try {
 				packetDispatcher.proccessPacket(this);
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
+
 				e.printStackTrace();
 			}
+
 		}) {
 
 		}.start();
+
 		Gdx.input.setInputProcessor(this.inputAdapter);
 
 	}
@@ -97,14 +103,23 @@ public class PlayScreen implements Screen {
 		renderer.render();
 
 		batch.begin();
-		packetDispatcher.dispatchMessage(new PacketPlayer(localPlayer.getData(), PacketType.CHECK));
+
 		packetDispatcher.dispatchMessage(new PacketPlayer(localPlayer.getData(), PacketType.MOVE));
 		drawPlayers();
+		test();
+		
 		cameraGo();
 		camera.update();
 
 		batch.end();
 
+	}
+	private void test()
+	{
+		for (RemotedPlayer player : players.values())
+		{
+			System.out.println(player.getLocation().x + " " + player.getLocation().y);
+		}
 	}
 
 	@Override
@@ -127,14 +142,25 @@ public class PlayScreen implements Screen {
 	}
 
 	public void updatePlayer(PlayerData data) {
-		RemotedPlayer player = players.get(data.getNickname());
-		if (player != null) {
-			player.setLocation(new Vector2(data.getX(), data.getY()));
+
+		if (data.getNickname().equals(localPlayer.getNickname())) {
+			localPlayer.setLocation(new Vector2(data.getX(), data.getY()));
+		} else {
+			RemotedPlayer player = players.get(data.getNickname());
+			if (player == null) {
+				joinPlayer(data);
+			}
+			player = players.get(data.getNickname());
+			System.out.println(data.getX() + " " + data.getY());
+			player.setCoords(data.getX(), data.getY());
+			
 		}
+
 	}
 
 	public void joinPlayer(PlayerData data) {
-		RemotedPlayer player = new RemotedPlayer(Character.ELF, data.getNickname());
+		RemotedPlayer player = new RemotedPlayer(data.getNickname());
+		System.out.println(data);
 		players.put(data.getNickname(), player);
 	}
 
@@ -143,8 +169,14 @@ public class PlayScreen implements Screen {
 	}
 
 	private void drawPlayers() {
+//		System.out.println("count remoted on client " + localPlayer.getNickname() + " " + players.values().size());
 		localPlayer.draw(batch);
 		for (RemotedPlayer player : players.values()) {
+			if (player.getEntitySprite() == null) {
+				Sprite newSprite = new Sprite(new Texture("ElfBasic.png"));
+				player.setEntitySprite(newSprite);
+			}
+
 			player.draw(batch);
 		}
 	}
