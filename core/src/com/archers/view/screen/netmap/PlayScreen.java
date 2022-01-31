@@ -1,10 +1,9 @@
 package com.archers.view.screen.netmap;
 
 import java.io.IOException;
-import java.util.HashMap;
+
 import java.util.Map;
-
-
+import java.util.concurrent.ConcurrentHashMap;
 
 import com.archers.controller.net.client.PacketDispatcher;
 import com.archers.controller.net.client.PacketType;
@@ -77,7 +76,7 @@ public class PlayScreen implements Screen {
 		renderer = new OrthogonalTiledMapRenderer(map, batch);
 		camera = new OrthographicCamera();
 		viewport = new ExtendViewport(worldWidth / 4, worldHeight / 4, camera);
-		players = new HashMap<>();
+		players = new ConcurrentHashMap<>();
 		inputAdapter = new PlayerInputAdapter();
 		localPlayer = new LocalPlayer(Character.ELF, this.inputAdapter, nickname);
 		new Thread(() -> {
@@ -106,7 +105,7 @@ public class PlayScreen implements Screen {
 
 		packetDispatcher.dispatchMessage(new PacketPlayer(localPlayer.getData(), PacketType.MOVE));
 		drawPlayers();
-		test();
+		
 		
 		cameraGo();
 		camera.update();
@@ -114,13 +113,7 @@ public class PlayScreen implements Screen {
 		batch.end();
 
 	}
-	private void test()
-	{
-		for (RemotedPlayer player : players.values())
-		{
-			System.out.println(player.getLocation().x + " " + player.getLocation().y);
-		}
-	}
+	
 
 	@Override
 	public void resize(int width, int height) {
@@ -151,7 +144,7 @@ public class PlayScreen implements Screen {
 				joinPlayer(data);
 			}
 			player = players.get(data.getNickname());
-			System.out.println(data.getX() + " " + data.getY());
+			
 			player.setCoords(data.getX(), data.getY());
 			
 		}
