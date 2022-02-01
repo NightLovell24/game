@@ -22,6 +22,10 @@ public class Client {
 		return data;
 	}
 
+	public void setData(PlayerData data) {
+		this.data = data;
+	}
+
 	public String getIp() {
 		return ip;
 	}

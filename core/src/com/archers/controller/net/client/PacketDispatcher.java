@@ -7,6 +7,7 @@ import java.net.InetAddress;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
+import java.util.Date;
 
 import com.archers.model.PacketPlayer;
 import com.archers.model.PlayerData;
@@ -26,7 +27,6 @@ public class PacketDispatcher {
 	private DatagramSocket socket;
 
 	public PacketDispatcher(String ip, int port) {
-
 		this.ip = ip;
 		this.port = port;
 		mapper = new ObjectMapper();
@@ -39,14 +39,14 @@ public class PacketDispatcher {
 	}
 
 	public boolean join(PlayerData playerData) {
-
 		try {
-			InetAddress adress = InetAddress.getByName(ip);
+			InetAddress address = InetAddress.getByName(ip);
 
+			playerData.setDate(new Date());
 			PacketPlayer packetPlayer = new PacketPlayer(playerData, PacketType.JOIN);
 			String message = mapper.writeValueAsString(packetPlayer);
 			byte[] buf = message.getBytes();
-			DatagramPacket dataPacket = new DatagramPacket(buf, buf.length, adress, port);
+			DatagramPacket dataPacket = new DatagramPacket(buf, buf.length, address, port);
 			for (int i = 0; i < COUNT_OF_COPIES; i++) {
 				socket.send(dataPacket);
 			}
@@ -54,7 +54,6 @@ public class PacketDispatcher {
 			socket.setSoTimeout(TIMEOUT * 1000);
 			try {
 				socket.receive(dataPacket);
-
 				return true;
 			} catch (SocketTimeoutException e) {
 				return false;
@@ -72,11 +71,9 @@ public class PacketDispatcher {
 		return false;
 	}
 
-	public void proccessPacket(PlayScreen screen) throws IOException {
-
+	public void processPacket(PlayScreen screen) throws IOException {
 		DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
 		while (true) {
-
 			socket.receive(packet);
 
 			String received = new String(packet.getData(), 0, packet.getLength());
@@ -84,12 +81,9 @@ public class PacketDispatcher {
 			PacketPlayer packetPlayer = mapper.readValue(received, PacketPlayer.class);
 			switch (packetPlayer.getType()) {
 			case MOVE:
-
 				movePlayer(packetPlayer, screen);
 				break;
-
 			case JOIN:
-
 				joinPlayer(packetPlayer, screen);
 				break;
 			case LEAVE:
@@ -114,10 +108,10 @@ public class PacketDispatcher {
 	public void dispatchMessage(PacketPlayer packetPlayer) {
 		try {
 			String message = mapper.writeValueAsString(packetPlayer);
-			InetAddress adress = InetAddress.getByName(ip);
+			InetAddress address = InetAddress.getByName(ip);
 
 			byte[] buf = message.getBytes();
-			DatagramPacket packet = new DatagramPacket(buf, buf.length, adress, port);
+			DatagramPacket packet = new DatagramPacket(buf, buf.length, address, port);
 
 			socket.send(packet);
 		} catch (JsonProcessingException e) {

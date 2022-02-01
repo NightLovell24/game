@@ -1,5 +1,7 @@
 package com.archers.model;
 
+import java.util.Date;
+
 public class PlayerData {
 
 	private enum State {
@@ -11,7 +13,6 @@ public class PlayerData {
 	}
 
 	public PlayerData(String nickname) {
-
 		this.nickname = nickname;
 	}
 
@@ -19,6 +20,7 @@ public class PlayerData {
 
 	}
 
+	private Date date;
 	private String nickname;
 	private float x;
 	private float y;
@@ -47,6 +49,14 @@ public class PlayerData {
 
 	public void setY(float y) {
 		this.y = y;
+	}
+
+	public Date getDate() {
+		return date;
+	}
+
+	public void setDate(Date date) {
+		this.date = date;
 	}
 
 	public State getCurrentState() {

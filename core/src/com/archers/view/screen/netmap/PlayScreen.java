@@ -2,6 +2,7 @@ package com.archers.view.screen.netmap;
 
 import java.io.IOException;
 
+import java.util.Date;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -61,11 +62,9 @@ public class PlayScreen implements Screen {
 	private PacketDispatcher packetDispatcher;
 
 	public PlayScreen(SpriteBatch batch, String nickname, PacketDispatcher packetDispatcher) {
-
 		this.nickname = nickname;
 		this.batch = batch;
 		this.packetDispatcher = packetDispatcher;
-
 	}
 
 	@Override
@@ -80,19 +79,15 @@ public class PlayScreen implements Screen {
 		inputAdapter = new PlayerInputAdapter();
 		localPlayer = new LocalPlayer(Character.ELF, this.inputAdapter, nickname);
 		new Thread(() -> {
-			try {
-				packetDispatcher.proccessPacket(this);
-			} catch (IOException e) {
-
-				e.printStackTrace();
-			}
-
-		}) {
-
+				try {
+					packetDispatcher.processPacket(this);
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}) {
 		}.start();
 
 		Gdx.input.setInputProcessor(this.inputAdapter);
-
 	}
 
 	@Override
@@ -103,9 +98,9 @@ public class PlayScreen implements Screen {
 
 		batch.begin();
 
+		localPlayer.getData().setDate(new Date());
 		packetDispatcher.dispatchMessage(new PacketPlayer(localPlayer.getData(), PacketType.MOVE));
 		drawPlayers();
-		
 		
 		cameraGo();
 		camera.update();
@@ -121,21 +116,17 @@ public class PlayScreen implements Screen {
 	}
 
 	private void cameraGo() {
-
 		Vector2 playerPos = localPlayer.getCenterLocation();
-
 		float cameraX = Math.min(Math.max(playerPos.x, camera.viewportWidth / 2.0f),
 				worldWidth - camera.viewportWidth / 2.0f);
 		float cameraY = Math.min(Math.max(playerPos.y, camera.viewportHeight / 2.0f),
 				worldHeight - camera.viewportHeight / 2.0f);
 		camera.position.set(cameraX, cameraY, 0);
-
 		camera.update();
 
 	}
 
 	public void updatePlayer(PlayerData data) {
-
 		if (data.getNickname().equals(localPlayer.getNickname())) {
 			localPlayer.setLocation(new Vector2(data.getX(), data.getY()));
 		} else {
@@ -144,11 +135,8 @@ public class PlayScreen implements Screen {
 				joinPlayer(data);
 			}
 			player = players.get(data.getNickname());
-			
 			player.setCoords(data.getX(), data.getY());
-			
 		}
-
 	}
 
 	public void joinPlayer(PlayerData data) {
@@ -169,7 +157,6 @@ public class PlayScreen implements Screen {
 				Sprite newSprite = new Sprite(new Texture("ElfBasic.png"));
 				player.setEntitySprite(newSprite);
 			}
-
 			player.draw(batch);
 		}
 	}
