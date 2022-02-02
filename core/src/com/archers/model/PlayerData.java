@@ -1,5 +1,7 @@
 package com.archers.model;
 
+import com.badlogic.gdx.math.Vector2;
+
 import java.util.Date;
 
 public class PlayerData {
@@ -20,12 +22,19 @@ public class PlayerData {
 
 	}
 
+	private int id;
 	private Date date;
 	private String nickname;
 	private float x;
 	private float y;
 	private State currentState;
 	private Facing currentFacing;
+	private boolean leftPressed;
+	private boolean rightPressed;
+	private boolean upPressed;
+	private boolean downPressed;
+	private Vector2 mouseAngle = new Vector2();
+
 
 	public String getNickname() {
 		return nickname;
@@ -73,6 +82,54 @@ public class PlayerData {
 
 	public void setCurrentFacing(Facing currentFacing) {
 		this.currentFacing = currentFacing;
+	}
+
+	public int getId() {
+		return id;
+	}
+
+	public void setId(int id) {
+		this.id = id;
+	}
+
+	public boolean isLeftPressed() {
+		return leftPressed;
+	}
+
+	public void setLeftPressed(boolean leftPressed) {
+		this.leftPressed = leftPressed;
+	}
+
+	public boolean isRightPressed() {
+		return rightPressed;
+	}
+
+	public void setRightPressed(boolean rightPressed) {
+		this.rightPressed = rightPressed;
+	}
+
+	public boolean isUpPressed() {
+		return upPressed;
+	}
+
+	public void setUpPressed(boolean upPressed) {
+		this.upPressed = upPressed;
+	}
+
+	public boolean isDownPressed() {
+		return downPressed;
+	}
+
+	public void setDownPressed(boolean downPressed) {
+		this.downPressed = downPressed;
+	}
+
+	public Vector2 getMouseAngle() {
+		return mouseAngle;
+	}
+
+	public void setMouseAngle(Vector2 mouseAngle) {
+		this.mouseAngle = mouseAngle;
 	}
 
 	@Override

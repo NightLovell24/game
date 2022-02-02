@@ -14,23 +14,22 @@ public class PlayerInputAdapter implements InputProcessor {
 	@Override
 	public boolean keyDown(int keycode) {
 		switch (keycode) {
-		case Keys.W: {
-			upPressed = true;
-
-			break;
-		}
-		case Keys.S: {
-			downPressed = true;
-			break;
-		}
-		case Keys.A: {
-			leftPressed = true;
-			break;
-		}
-		case Keys.D: {
-			rightPressed = true;
-			break;
-		}
+			case Keys.W: {
+				upPressed = true;
+				break;
+			}
+			case Keys.S: {
+				downPressed = true;
+				break;
+			}
+			case Keys.A: {
+				leftPressed = true;
+				break;
+			}
+			case Keys.D: {
+				rightPressed = true;
+				break;
+			}
 		}
 		return true;
 	}
@@ -38,23 +37,22 @@ public class PlayerInputAdapter implements InputProcessor {
 	@Override
 	public boolean keyUp(int keycode) {
 		switch (keycode) {
-		case Keys.W: {
-			upPressed = false;
-
-			break;
-		}
-		case Keys.S: {
-			downPressed = false;
-			break;
-		}
-		case Keys.A: {
-			leftPressed = false;
-			break;
-		}
-		case Keys.D: {
-			rightPressed = false;
-			break;
-		}
+			case Keys.W: {
+				upPressed = false;
+				break;
+			}
+			case Keys.S: {
+				downPressed = false;
+				break;
+			}
+			case Keys.A: {
+				leftPressed = false;
+				break;
+			}
+			case Keys.D: {
+				rightPressed = false;
+				break;
+			}
 		}
 		return true;
 	}

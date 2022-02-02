@@ -56,10 +56,10 @@ public class PlayScreen implements Screen {
 	private String nickname;
 	private SpriteBatch batch;
 	private ExtendViewport viewport;
-	private LocalPlayer localPlayer;
 	private PlayerInputAdapter inputAdapter;
-	private Map<String, RemotedPlayer> players; //
 	private PacketDispatcher packetDispatcher;
+	private LocalPlayer localPlayer;
+	private Map<String, RemotedPlayer> players;
 
 	public PlayScreen(SpriteBatch batch, String nickname, PacketDispatcher packetDispatcher) {
 		this.nickname = nickname;
@@ -97,14 +97,11 @@ public class PlayScreen implements Screen {
 		renderer.render();
 
 		batch.begin();
-
-		localPlayer.getData().setDate(new Date());
-		packetDispatcher.dispatchMessage(new PacketPlayer(localPlayer.getData(), PacketType.MOVE));
-		drawPlayers();
-		
-		cameraGo();
-		camera.update();
-
+			localPlayer.getData().setDate(new Date());
+			packetDispatcher.dispatchMessage(new PacketPlayer(localPlayer.getData(), PacketType.MOVE));
+			drawPlayers();
+			cameraGo();
+			camera.update();
 		batch.end();
 
 	}
@@ -128,7 +125,7 @@ public class PlayScreen implements Screen {
 
 	public void updatePlayer(PlayerData data) {
 		if (data.getNickname().equals(localPlayer.getNickname())) {
-			localPlayer.setLocation(new Vector2(data.getX(), data.getY()));
+			//localPlayer.setLocation(data.getX(), data.getY());
 		} else {
 			RemotedPlayer player = players.get(data.getNickname());
 			if (player == null) {

@@ -10,16 +10,11 @@ import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.math.Vector2;
 
 public class LocalPlayer extends Sprite {
+	private final PlayerData data;
+	private final Vector2 centerLocation;
 
-	private PlayerData data;
-
-	
-	private Vector2 centerLocation;
-	private Vector2 location;
-	
-
-	private PlayerInputAdapter adapter;
-	private float step = 0.8f;
+	private final PlayerInputAdapter adapter;
+	private static final float STEP = 0.8f;
 
 	public LocalPlayer(Character character, PlayerInputAdapter adapter, String nickname) {
 		super(new Texture("ElfBasic.png"));
@@ -27,40 +22,55 @@ public class LocalPlayer extends Sprite {
 		
 		data = new PlayerData(nickname);
 		centerLocation = new Vector2();
-		location = new Vector2();
 	}
 
 	@Override
 	public void draw(Batch batch) {
-		updateCoords(data);
+		updateCoords();
 		setCoords();
+		updateButtons();
 		super.draw(batch);
 	}
 
-	private void updateCoords(PlayerData data) {
+	private void updateCoords() {
+		float dx = 0;
+		float dy = 0;
 		if (adapter.leftPressed) {
-			data.setX(data.getX() - step);
+			dx -= STEP;
 		}
 		if (adapter.rightPressed) {
-			data.setX(data.getX() + step);
+			dx += STEP;
 		}
 		if (adapter.upPressed) {
-			data.setY(data.getY() + step);
+			dy += STEP;
 		}
 		if (adapter.downPressed) {
-			data.setY(data.getY() - step);
+			dy -= STEP;
 		}
+
+		if (dx * dx + dy * dy > 1.5 * STEP * STEP) {
+			dx /= Math.sqrt(2);
+			dy /= Math.sqrt(2);
+		}
+
+		data.setX(data.getX() + dx);
+		data.setY(data.getY() + dy);
 	}
 
 	private void setCoords() {
 		this.setX(data.getX());
 		this.setY(data.getY());
 
-		location.x = data.getX();
-		location.y = data.getY();
 		centerLocation.x = data.getX() + 16;
 		centerLocation.y = data.getY() + 16;
+	}
 
+	private void updateButtons() {
+		data.setUpPressed(adapter.upPressed);
+		data.setDownPressed(adapter.downPressed);
+		data.setLeftPressed(adapter.leftPressed);
+		data.setRightPressed(adapter.rightPressed);
+		data.setMouseAngle(adapter.getMouseAngle());
 	}
 
 	
@@ -72,15 +82,13 @@ public class LocalPlayer extends Sprite {
 		return centerLocation;
 	}
 
-	public Vector2 getLocation() {
-		return location;
-	}
-
 	public String getNickname() {
 		return data.getNickname();
 	}
-	public void setLocation(Vector2 location) {
-		this.location = location;
+
+	public void setLocation(float x, float y) {
+		data.setX(x);
+		data.setY(y);
 	}
 
 }
