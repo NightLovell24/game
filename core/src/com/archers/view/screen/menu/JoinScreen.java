@@ -48,7 +48,7 @@ public class JoinScreen implements Screen {
 		camera.position.set(camera.viewportWidth / 2, camera.viewportHeight / 2, 0);
 		camera.update();
 
-		stage = new Stage(viewport, this.batch);
+		stage = new Stage(viewport, batch);
 	}
 
 	@Override
@@ -63,7 +63,7 @@ public class JoinScreen implements Screen {
 		TextButton connectButton = new TextButton("Connect", skin);
 		TextButton menuButton = new TextButton("Menu", skin);
 		TextField nickname = new TextField("", skin);
-		TextField adress = new TextField("", skin);
+		TextField address = new TextField("", skin);
 		Label wrongIpLabel = new Label("Cannot connect to the given address.",
 				new Label.LabelStyle(new BitmapFont(), Color.RED));
 		wrongIpLabel.setVisible(false);
@@ -74,7 +74,7 @@ public class JoinScreen implements Screen {
 		connectButton.addListener(new ClickListener() {
 			@Override
 			public void clicked(InputEvent event, float x, float y) {
-				PacketDispatcher packetDispatcher = new PacketDispatcher(adress.getText(), 24120);
+				PacketDispatcher packetDispatcher = new PacketDispatcher(address.getText(), 24120);
 				boolean joined = packetDispatcher.join(new PlayerData(nickname.getText()));
 				if (joined) {
 					game.setScreen(new PlayScreen(batch, nickname.getText(),  packetDispatcher));
@@ -94,7 +94,7 @@ public class JoinScreen implements Screen {
 		mainTable.add(nickname);
 		mainTable.row();
 		mainTable.add(adressLabel);
-		mainTable.add(adress);
+		mainTable.add(address);
 		mainTable.row();
 		mainTable.add(connectButton);
 		mainTable.row();
@@ -105,7 +105,6 @@ public class JoinScreen implements Screen {
 		mainTable.add(nicknameUsedLabel);
 
 		stage.addActor(mainTable);
-
 	}
 
 	@Override
@@ -119,7 +118,6 @@ public class JoinScreen implements Screen {
 	@Override
 	public void resize(int width, int height) {
 		viewport.update(width, height, true);
-
 	}
 
 	@Override
@@ -143,9 +141,7 @@ public class JoinScreen implements Screen {
 	@Override
 	public void dispose() {
 		skin.dispose();
-
 		stage.dispose();
-
 	}
 
 }

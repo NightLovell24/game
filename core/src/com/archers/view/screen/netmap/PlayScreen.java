@@ -18,9 +18,11 @@ import com.archers.view.inputadapter.PlayerInputAdapter;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
 
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.maps.tiled.TiledMap;
@@ -29,6 +31,7 @@ import com.badlogic.gdx.maps.tiled.TmxMapLoader;
 import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer;
 import com.badlogic.gdx.math.Vector2;
 
+import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.utils.viewport.ExtendViewport;
 
 public class PlayScreen implements Screen {
@@ -56,6 +59,7 @@ public class PlayScreen implements Screen {
 	private String nickname;
 	private SpriteBatch batch;
 	private ExtendViewport viewport;
+    private Stage stage;
 	private PlayerInputAdapter inputAdapter;
 	private PacketDispatcher packetDispatcher;
 	private LocalPlayer localPlayer;
@@ -75,9 +79,11 @@ public class PlayScreen implements Screen {
 		renderer = new OrthogonalTiledMapRenderer(map, batch);
 		camera = new OrthographicCamera();
 		viewport = new ExtendViewport(worldWidth / 4, worldHeight / 4, camera);
+        stage = new Stage(viewport, batch);
+
 		players = new ConcurrentHashMap<>();
 		inputAdapter = new PlayerInputAdapter();
-		localPlayer = new LocalPlayer(Character.ELF, this.inputAdapter, nickname);
+		localPlayer = new LocalPlayer(Character.ELF, this.inputAdapter, nickname, stage);
 		new Thread(() -> {
 				try {
 					packetDispatcher.processPacket(this);
@@ -95,6 +101,9 @@ public class PlayScreen implements Screen {
 		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 		renderer.setView(camera);
 		renderer.render();
+
+		stage.act();
+		stage.draw();
 
 		batch.begin();
 			localPlayer.getData().setDate(new Date());
@@ -175,6 +184,7 @@ public class PlayScreen implements Screen {
 
 	@Override
 	public void dispose() {
+		stage.dispose();
 		map.dispose();
 		renderer.dispose();
 	}

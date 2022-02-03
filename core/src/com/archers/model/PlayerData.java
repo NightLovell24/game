@@ -1,7 +1,5 @@
 package com.archers.model;
 
-import com.badlogic.gdx.math.Vector2;
-
 import java.util.Date;
 
 public class PlayerData {
@@ -33,7 +31,8 @@ public class PlayerData {
 	private boolean rightPressed;
 	private boolean upPressed;
 	private boolean downPressed;
-	private Vector2 mouseAngle = new Vector2();
+	private float mouseAngleX;
+	private float mouseAngleY;
 
 
 	public String getNickname() {
@@ -124,12 +123,20 @@ public class PlayerData {
 		this.downPressed = downPressed;
 	}
 
-	public Vector2 getMouseAngle() {
-		return mouseAngle;
+	public float getMouseAngleX() {
+		return mouseAngleX;
 	}
 
-	public void setMouseAngle(Vector2 mouseAngle) {
-		this.mouseAngle = mouseAngle;
+	public void setMouseAngleX(float mouseAngleX) {
+		this.mouseAngleX = mouseAngleX;
+	}
+
+	public float getMouseAngleY() {
+		return mouseAngleY;
+	}
+
+	public void setMouseAngleY(float mouseAngleY) {
+		this.mouseAngleY = mouseAngleY;
 	}
 
 	@Override

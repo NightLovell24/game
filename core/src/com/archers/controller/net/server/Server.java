@@ -131,17 +131,14 @@ public class Server {
 			PlayerData data = packetPlayer.getData();
 			players.get(data.getNickname()).setData(data);
 			refreshPlayer(data.getNickname());
-			System.out.println("Sending correct data");
 			dispatchMessageAll(packetPlayer);
 		} else {
-			System.out.println("Invalid data");
 			if (packetPlayer != null) {
 				PlayerData data = packetPlayer.getData();
 				if (data != null) {
 					Client client = players.get(data.getNickname());
 					if (client != null) {
 						refreshPlayer(data.getNickname());
-						System.out.println("Sending old data instead of incorrect");
 						dispatchMessageAll(new PacketPlayer(client.getData(), PacketType.MOVE));
 					}
 				}
