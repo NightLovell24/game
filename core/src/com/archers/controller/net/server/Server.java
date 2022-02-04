@@ -23,8 +23,8 @@ public class Server {
 
 	private DatagramSocket socket;
 	private static final int port = 24120;
-	private static final String MAP = "firstmap.tmx";
-	private MapChecker mapChecker;
+	//private static final String MAP = "firstmap.tmx";
+	//private MapChecker mapChecker;
 
 	private static final int TIMEOUT = 5;
 	private Map<String, Client> players;
@@ -40,7 +40,7 @@ public class Server {
 		try {
 			players = new ConcurrentHashMap<>();
 			socket = new DatagramSocket(port);
-            mapChecker = new MapChecker(MAP);
+            //mapChecker = new MapChecker(MAP);
 
 			serverMessage("Server is started!");
 			listenPackets();
@@ -172,11 +172,11 @@ public class Server {
 
 			if (distance / time > SPEED_LIMIT) return false;
 
-			if (!mapChecker.isInsideWorld(newData.getX(), newData.getY())) return false;
-			if (mapChecker.isInsideObstacle(newData.getX(), newData.getY())) return false;
-			if (mapChecker.isInsideShelter(newData.getX(), newData.getY())) {
-				newData.setCurrentState(PlayerData.State.HIDING);
-			}
+			//if (!mapChecker.isInsideWorld(newData.getX(), newData.getY())) return false;
+			//if (mapChecker.isInsideObstacle(newData.getX(), newData.getY())) return false;
+			//if (mapChecker.isInsideShelter(newData.getX(), newData.getY())) {
+			//	newData.setCurrentState(PlayerData.State.HIDING);
+			//}
 		} else if (packetPlayer.getType() == PacketType.JOIN) {
 
 		}

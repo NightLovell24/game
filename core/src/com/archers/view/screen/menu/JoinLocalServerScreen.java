@@ -31,7 +31,7 @@ public class JoinLocalServerScreen implements Screen {
     private final float HEIGHT = 480;
 
     public JoinLocalServerScreen(SpriteBatch batch, Starter game) {
-        Server.main(null);
+        new Thread(Server::new).start();
 
         this.batch = batch;
         this.game = game;
