@@ -34,6 +34,7 @@ import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.utils.viewport.ExtendViewport;
 
 public class PlayScreen implements Screen {
+
 	public static int WIDTH;
 	public static int HEIGHT;
 
@@ -41,7 +42,6 @@ public class PlayScreen implements Screen {
 
 	private float worldWidth;
 	private float worldHeight;
-
 	private TiledMap map;
 
 	private OrthogonalTiledMapRenderer renderer;
@@ -50,7 +50,9 @@ public class PlayScreen implements Screen {
 	private String nickname;
 	private SpriteBatch batch;
 	private ExtendViewport viewport;
+
 	private Stage stage;
+
 	private PlayerInputAdapter inputAdapter;
 	private PacketDispatcher packetDispatcher;
 	private LocalPlayer localPlayer;
@@ -77,18 +79,23 @@ public class PlayScreen implements Screen {
 		renderer = new OrthogonalTiledMapRenderer(map, batch);
 		camera = new OrthographicCamera();
 		viewport = new ExtendViewport(worldWidth / 4, worldHeight / 4, camera);
+
 		stage = new Stage(viewport, batch);
+
+
 
 		players = new ConcurrentHashMap<>();
 		inputAdapter = new PlayerInputAdapter();
 		localPlayer = new LocalPlayer(Character.ELF, this.inputAdapter, nickname, stage);
 		new Thread(() -> {
-			try {
-				packetDispatcher.processPacket(this);
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		}) {
+
+				try {
+					packetDispatcher.processPacket(this);
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}) {
+
 		}.start();
 
 		Gdx.input.setInputProcessor(this.inputAdapter);
@@ -104,11 +111,13 @@ public class PlayScreen implements Screen {
 		stage.draw();
 
 		batch.begin();
+
 		localPlayer.getData().setDate(new Date());
 		packetDispatcher.dispatchMessage(new PacketPlayer(localPlayer.getData(), PacketType.MOVE));
 		drawPlayers();
 		cameraGo();
 		camera.update();
+
 		batch.end();
 
 	}
@@ -131,7 +140,7 @@ public class PlayScreen implements Screen {
 
 	public void updatePlayer(PlayerData data) {
 		if (data.getNickname().equals(localPlayer.getNickname())) {
-			// localPlayer.setLocation(data.getX(), data.getY());
+
 		} else {
 			RemotedPlayer player = players.get(data.getNickname());
 			if (player == null) {
