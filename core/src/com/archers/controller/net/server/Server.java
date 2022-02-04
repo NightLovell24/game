@@ -15,14 +15,16 @@ import com.archers.controller.net.client.Client;
 import com.archers.controller.net.client.PacketType;
 import com.archers.model.PacketPlayer;
 
+import com.archers.model.PlayerData;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class Server {
 
 	private DatagramSocket socket;
 	private static final int port = 24120;
+	//private static final String MAP = "firstmap.tmx";
+	//private MapChecker mapChecker;
 
 	private static final int TIMEOUT = 5;
 	private Map<String, Client> players;
@@ -37,18 +39,17 @@ public class Server {
 	public Server() {
 		try {
 			players = new ConcurrentHashMap<>();
-
 			socket = new DatagramSocket(port);
+            //mapChecker = new MapChecker(MAP);
+
 			serverMessage("Server is started!");
 			listenPackets();
-
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 	}
 
-	private void serverMessage(String msg)
-	{
+	private void serverMessage(String msg) {
 		Date date = new Date();
 		SimpleDateFormat format = new SimpleDateFormat("HH:mm:ss");
 		System.out.println("["+format.format(date) + "]" + " " + msg);
@@ -57,35 +58,26 @@ public class Server {
 	private void listenPackets() throws IOException {
 		DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
 		while (true) {
-
 			socket.receive(packet);
-
 			String received = new String(packet.getData(), 0, packet.getLength());
 //			System.out.println(received);
 			processPacket(received, packet.getAddress().getHostAddress(), packet.getPort());
 		}
 	}
 
-	private void processPacket(String message, String ip, int port)
-			throws JsonMappingException, JsonProcessingException {
+	private void processPacket(String message, String ip, int port) throws JsonProcessingException {
 		PacketPlayer packetPlayer = mapper.readValue(message, PacketPlayer.class);
 		switch (packetPlayer.getType()) {
 		case JOIN:
-
 			joinPlayer(packetPlayer, ip, port);
 			break;
-
 		case LEAVE: // IF PLAYER PRESSED THE DISCONNECT BUTTON (WILL BE IMPLEMENTED IN THE FUTURE)
 			leavePlayer(packetPlayer);
 			break;
-
 		case MOVE:
-
 			movePlayer(packetPlayer);
 			break;
-
 		}
-
 	}
 
 	private void refreshPlayer(String nickname) {
@@ -96,8 +88,7 @@ public class Server {
 	private void joinPlayer(PacketPlayer packetPlayer, String ip, int port) {
 		if (players.get(packetPlayer.getData().getNickname()) == null) {
 			players.put(packetPlayer.getData().getNickname(), new Client(packetPlayer.getData(), ip, port));
-			serverMessage(packetPlayer.getData().getNickname() + " " + ip + ":" + port + " joined to the server!");
-
+			serverMessage(packetPlayer.getData().getNickname() + " " + ip + ":" + port + " joined the server!");
 			new ClientListener(packetPlayer.getData().getNickname());
 			dispatchMessageAll(packetPlayer);
 		}
@@ -107,14 +98,12 @@ public class Server {
 		String nickname = packetPlayer.getData().getNickname();
 		if (players.get(nickname) != null) {
 			players.remove(nickname);
-
-			serverMessage(nickname + " leaved from the server!");
+			serverMessage(nickname + " left the server!");
 			dispatchMessageAll(packetPlayer);
 		}
 	}
 
 	class ClientListener extends Thread {
-
 		private String nickname;
 
 		public ClientListener(String nickname) {
@@ -124,7 +113,6 @@ public class Server {
 
 		@Override
 		public void run() {
-
 			while (players.get(nickname).isConnectionRefreshed()) {
 				Client client = players.get(nickname);
 				client.setConnectionRefreshed(false);
@@ -135,43 +123,92 @@ public class Server {
 					e.printStackTrace();
 				}
 				if (!client.isConnectionRefreshed()) {
-
 					leavePlayer(new PacketPlayer(client.getData(), PacketType.LEAVE));
 					return;
 				}
-
 			}
-
 		}
-
 	}
 
 	private void movePlayer(PacketPlayer packetPlayer) {
-// validation
-		refreshPlayer(packetPlayer.getData().getNickname());
-		dispatchMessageAll(packetPlayer);
+		if (isValid(packetPlayer)) {
+			PlayerData data = packetPlayer.getData();
+			players.get(data.getNickname()).setData(data);
+			refreshPlayer(data.getNickname());
+			dispatchMessageAll(packetPlayer);
+		} else {
+			if (packetPlayer != null) {
+				PlayerData data = packetPlayer.getData();
+				if (data != null) {
+					Client client = players.get(data.getNickname());
+					if (client != null) {
+						refreshPlayer(data.getNickname());
+						dispatchMessageAll(new PacketPlayer(client.getData(), PacketType.MOVE));
+					}
+				}
+			}
+		}
+
 
 	}
 
-	private void dispatchMessageAll(PacketPlayer packetPlayer) {
-		for (Client client : players.values()) {
-			try {
-				String message = mapper.writeValueAsString(packetPlayer);
-				InetAddress adress = InetAddress.getByName(client.getIp());
-				int port = client.getPort();
+	private static final double SPEED_LIMIT = 0.055;
 
-				byte[] buf = message.getBytes();
-				DatagramPacket packet = new DatagramPacket(buf, buf.length, adress, port);
-				socket.send(packet);
-			} catch (JsonProcessingException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (UnknownHostException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+	private boolean isValid(PacketPlayer packetPlayer) {
+		if (packetPlayer == null) return false;
+
+		if (packetPlayer.getType() == PacketType.MOVE) {
+			PlayerData newData = packetPlayer.getData();
+			if (newData == null) return false;
+
+			Client client =  players.get(newData.getNickname());
+			if (client == null) return false;
+
+			PlayerData oldData = client.getData();
+
+			double distance = Math.
+					sqrt(Math.pow(oldData.getX() - newData.getX(), 2) + Math.pow(oldData.getY() - newData.getY(), 2));
+			long time = newData.getDate().getTime() - oldData.getDate().getTime();
+
+			if (distance / time > SPEED_LIMIT) return false;
+
+			//if (!mapChecker.isInsideWorld(newData.getX(), newData.getY())) return false;
+			//if (mapChecker.isInsideObstacle(newData.getX(), newData.getY())) return false;
+			//if (mapChecker.isInsideShelter(newData.getX(), newData.getY())) {
+			//	newData.setCurrentState(PlayerData.State.HIDING);
+			//}
+		} else if (packetPlayer.getType() == PacketType.JOIN) {
+
+		}
+
+		return true;
+	}
+
+	private void dispatchMessageAll(PacketPlayer packetPlayer) {
+		System.out.println(new Date().getTime());
+		byte[] buf = null;
+		try {
+			String message = mapper.writeValueAsString(packetPlayer);
+			buf = message.getBytes();
+		} catch (JsonProcessingException e) {
+			e.printStackTrace();
+		}
+
+		if (buf != null) {
+			for (Client client : players.values()) {
+				try {
+					InetAddress adress = InetAddress.getByName(client.getIp());
+					int port = client.getPort();
+
+					DatagramPacket packet = new DatagramPacket(buf, buf.length, adress, port);
+					socket.send(packet);
+				} catch (UnknownHostException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 			}
 		}
 	}

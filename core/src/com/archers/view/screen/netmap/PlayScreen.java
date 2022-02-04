@@ -2,6 +2,7 @@ package com.archers.view.screen.netmap;
 
 import java.io.IOException;
 
+import java.util.Date;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -22,30 +23,24 @@ import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.maps.MapProperties;
 import com.badlogic.gdx.maps.tiled.TiledMap;
 
 import com.badlogic.gdx.maps.tiled.TmxMapLoader;
 import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer;
 import com.badlogic.gdx.math.Vector2;
 
+import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.utils.viewport.ExtendViewport;
 
 public class PlayScreen implements Screen {
+	public static int WIDTH;
+	public static int HEIGHT;
 
-	public static final int WIDTH = 50;
-	public static final int HEIGHT = 50;
+	public static int PIXELS;
 
-	public static final int PIXELS = 16;
-	public static final int CHARACTER_PIXELS = 32;
-
-	public static final int MIN_X = 0;
-	public static final int MAX_X = (WIDTH - 1) * PIXELS;
-
-	public static final int MIN_Y = 0;
-	public static final int MAX_Y = (HEIGHT - 1) * PIXELS;
-
-	private float worldWidth = WIDTH * PIXELS;
-	private float worldHeight = HEIGHT * PIXELS;
+	private float worldWidth;
+	private float worldHeight;
 
 	private TiledMap map;
 
@@ -55,44 +50,48 @@ public class PlayScreen implements Screen {
 	private String nickname;
 	private SpriteBatch batch;
 	private ExtendViewport viewport;
-	private LocalPlayer localPlayer;
+	private Stage stage;
 	private PlayerInputAdapter inputAdapter;
-	private Map<String, RemotedPlayer> players; //
 	private PacketDispatcher packetDispatcher;
+	private LocalPlayer localPlayer;
+	private Map<String, RemotedPlayer> players;
 
 	public PlayScreen(SpriteBatch batch, String nickname, PacketDispatcher packetDispatcher) {
-
 		this.nickname = nickname;
 		this.batch = batch;
 		this.packetDispatcher = packetDispatcher;
-
 	}
 
 	@Override
 	public void show() {
 		TmxMapLoader loader = new TmxMapLoader();
-		map = loader.load("firstmap.tmx");
+		map = loader.load("map.tmx");
+
+		MapProperties prop = map.getProperties();
+		WIDTH = prop.get("width", Integer.class);
+		HEIGHT = prop.get("height", Integer.class);
+		PIXELS = prop.get("tilewidth", Integer.class);
+		worldWidth = WIDTH * PIXELS;
+		worldHeight = HEIGHT * PIXELS;
 
 		renderer = new OrthogonalTiledMapRenderer(map, batch);
 		camera = new OrthographicCamera();
 		viewport = new ExtendViewport(worldWidth / 4, worldHeight / 4, camera);
+		stage = new Stage(viewport, batch);
+
 		players = new ConcurrentHashMap<>();
 		inputAdapter = new PlayerInputAdapter();
-		localPlayer = new LocalPlayer(Character.ELF, this.inputAdapter, nickname);
+		localPlayer = new LocalPlayer(Character.ELF, this.inputAdapter, nickname, stage);
 		new Thread(() -> {
 			try {
-				packetDispatcher.proccessPacket(this);
+				packetDispatcher.processPacket(this);
 			} catch (IOException e) {
-
 				e.printStackTrace();
 			}
-
 		}) {
-
 		}.start();
 
 		Gdx.input.setInputProcessor(this.inputAdapter);
-
 	}
 
 	@Override
@@ -101,19 +100,18 @@ public class PlayScreen implements Screen {
 		renderer.setView(camera);
 		renderer.render();
 
-		batch.begin();
+		stage.act();
+		stage.draw();
 
+		batch.begin();
+		localPlayer.getData().setDate(new Date());
 		packetDispatcher.dispatchMessage(new PacketPlayer(localPlayer.getData(), PacketType.MOVE));
 		drawPlayers();
-		
-		
 		cameraGo();
 		camera.update();
-
 		batch.end();
 
 	}
-	
 
 	@Override
 	public void resize(int width, int height) {
@@ -121,39 +119,32 @@ public class PlayScreen implements Screen {
 	}
 
 	private void cameraGo() {
-
 		Vector2 playerPos = localPlayer.getCenterLocation();
-
 		float cameraX = Math.min(Math.max(playerPos.x, camera.viewportWidth / 2.0f),
 				worldWidth - camera.viewportWidth / 2.0f);
 		float cameraY = Math.min(Math.max(playerPos.y, camera.viewportHeight / 2.0f),
 				worldHeight - camera.viewportHeight / 2.0f);
 		camera.position.set(cameraX, cameraY, 0);
-
 		camera.update();
 
 	}
 
 	public void updatePlayer(PlayerData data) {
-
 		if (data.getNickname().equals(localPlayer.getNickname())) {
-			localPlayer.setLocation(new Vector2(data.getX(), data.getY()));
+			// localPlayer.setLocation(data.getX(), data.getY());
 		} else {
 			RemotedPlayer player = players.get(data.getNickname());
 			if (player == null) {
 				joinPlayer(data);
 			}
 			player = players.get(data.getNickname());
-			
 			player.setCoords(data.getX(), data.getY());
-			
 		}
-
 	}
 
 	public void joinPlayer(PlayerData data) {
 		RemotedPlayer player = new RemotedPlayer(data.getNickname());
-		System.out.println(data);
+//		System.out.println(data);
 		players.put(data.getNickname(), player);
 	}
 
@@ -169,7 +160,6 @@ public class PlayScreen implements Screen {
 				Sprite newSprite = new Sprite(new Texture("ElfBasic.png"));
 				player.setEntitySprite(newSprite);
 			}
-
 			player.draw(batch);
 		}
 	}
@@ -191,6 +181,7 @@ public class PlayScreen implements Screen {
 
 	@Override
 	public void dispose() {
+		stage.dispose();
 		map.dispose();
 		renderer.dispose();
 	}
