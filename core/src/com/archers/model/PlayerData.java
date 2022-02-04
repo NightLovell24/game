@@ -3,12 +3,11 @@ package com.archers.model;
 import java.util.Date;
 
 public class PlayerData {
-
-	private enum State {
+	public enum State {
 		STANDING, RUNNING, HIDING
 	}
 
-	private enum Facing {
+	public enum Facing {
 		LEFT, RIGHT, DOWN, UP
 	}
 

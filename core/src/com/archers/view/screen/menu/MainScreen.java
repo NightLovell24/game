@@ -31,7 +31,6 @@ public class MainScreen implements Screen {
 	private Music music;
 
 	public MainScreen(SpriteBatch batch, Starter game) {
-
 		this.batch = batch;
 		this.game = game;
 		skin = new Skin(Gdx.files.internal("uiskin.json"));
@@ -47,7 +46,6 @@ public class MainScreen implements Screen {
 		camera.update();
 
 		stage = new Stage(viewport, this.batch);
-
 	}
 
 	@Override
@@ -66,13 +64,13 @@ public class MainScreen implements Screen {
 		joinButton.addListener(new ClickListener() {
 			@Override
 			public void clicked(InputEvent event, float x, float y) {
-				game.setScreen(new JoinScreen(batch, game));
+				game.setScreen(new JoinRemoteServerScreen(batch, game));
 			}
 		});
 		createButton.addListener(new ClickListener() {
 			@Override
 			public void clicked(InputEvent event, float x, float y) {
-//				game.setScreen(new CreateScreen());
+				game.setScreen(new JoinLocalServerScreen(batch, game));
 			}
 		});
 		optionsButton.addListener(new ClickListener() {
@@ -96,7 +94,6 @@ public class MainScreen implements Screen {
 		mainTable.add(exitButton);
 
 		stage.addActor(mainTable);
-
 	}
 
 	@Override
@@ -104,30 +101,25 @@ public class MainScreen implements Screen {
 		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 		stage.act();
 		stage.draw();
-
 	}
 
 	@Override
 	public void resize(int width, int height) {
 		viewport.update(width, height, true);
-
 	}
 
 	@Override
 	public void pause() {
 		// TODO Auto-generated method stub
-
 	}
 
 	@Override
 	public void resume() {
 		// TODO Auto-generated method stub
-
 	}
 
 	@Override
 	public void hide() {
-		
 
 	}
 
@@ -136,7 +128,6 @@ public class MainScreen implements Screen {
 		skin.dispose();
 		music.dispose();
 		stage.dispose();
-
 	}
 
 }

@@ -18,11 +18,9 @@ import com.archers.view.inputadapter.PlayerInputAdapter;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
 
-import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.maps.tiled.TiledMap;
@@ -35,18 +33,10 @@ import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.utils.viewport.ExtendViewport;
 
 public class PlayScreen implements Screen {
-
 	public static final int WIDTH = 50;
 	public static final int HEIGHT = 50;
 
 	public static final int PIXELS = 16;
-	public static final int CHARACTER_PIXELS = 32;
-
-	public static final int MIN_X = 0;
-	public static final int MAX_X = (WIDTH - 1) * PIXELS;
-
-	public static final int MIN_Y = 0;
-	public static final int MAX_Y = (HEIGHT - 1) * PIXELS;
 
 	private float worldWidth = WIDTH * PIXELS;
 	private float worldHeight = HEIGHT * PIXELS;

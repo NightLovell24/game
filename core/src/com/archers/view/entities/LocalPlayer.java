@@ -16,7 +16,6 @@ import com.badlogic.gdx.scenes.scene2d.ui.Label;
 
 public class LocalPlayer extends Sprite {
 	private final PlayerData data;
-	private final Stage stage;
 	private final Vector2 centerLocation;
 	private final Label nicknameLabel;
 
@@ -27,7 +26,6 @@ public class LocalPlayer extends Sprite {
 		super(new Texture("ElfBasic.png"));
 		this.adapter = adapter;
 
-		this.stage = stage;
 		nicknameLabel = new Label(nickname, new Label.LabelStyle(new BitmapFont(), Color.BLACK));
 		nicknameLabel.setVisible(true);
 		stage.addActor(nicknameLabel);

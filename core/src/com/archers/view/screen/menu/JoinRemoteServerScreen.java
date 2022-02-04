@@ -24,8 +24,7 @@ import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.utils.viewport.ExtendViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 
-public class JoinScreen implements Screen {
-
+public class JoinRemoteServerScreen implements Screen {
 	private SpriteBatch batch;
 	private Starter game;
 	private Stage stage;
@@ -36,7 +35,7 @@ public class JoinScreen implements Screen {
 	private final float WIDTH = 640;
 	private final float HEIGHT = 480;
 
-	public JoinScreen(SpriteBatch batch, Starter game) {
+	public JoinRemoteServerScreen(SpriteBatch batch, Starter game) {
 		this.batch = batch;
 		this.game = game;
 		skin = new Skin(Gdx.files.internal("uiskin.json"));
@@ -112,7 +111,6 @@ public class JoinScreen implements Screen {
 		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 		stage.act();
 		stage.draw();
-
 	}
 
 	@Override
@@ -143,5 +141,4 @@ public class JoinScreen implements Screen {
 		skin.dispose();
 		stage.dispose();
 	}
-
 }
