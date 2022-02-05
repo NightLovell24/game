@@ -23,5 +23,4 @@ public class PacketPlayer {
 
 	private PlayerData data;
 	private PacketType type;
-
 }

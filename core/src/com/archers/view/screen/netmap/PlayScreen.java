@@ -12,16 +12,13 @@ import com.archers.controller.net.client.PacketType;
 import com.archers.model.PacketPlayer;
 import com.archers.model.PlayerData;
 import com.archers.view.characters.Character;
-import com.archers.view.entities.LocalPlayer;
-import com.archers.view.entities.RemotedPlayer;
+import com.archers.view.entities.Player;
 import com.archers.view.inputadapter.PlayerInputAdapter;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
 
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
-import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.maps.MapProperties;
 import com.badlogic.gdx.maps.tiled.TiledMap;
@@ -34,7 +31,6 @@ import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.utils.viewport.ExtendViewport;
 
 public class PlayScreen implements Screen {
-
 	public static int WIDTH;
 	public static int HEIGHT;
 
@@ -47,16 +43,15 @@ public class PlayScreen implements Screen {
 	private OrthogonalTiledMapRenderer renderer;
 	private OrthographicCamera camera;
 
-	private String nickname;
-	private SpriteBatch batch;
+	private final String nickname;
+	private final SpriteBatch batch;
 	private ExtendViewport viewport;
 
 	private Stage stage;
 
-	private PlayerInputAdapter inputAdapter;
-	private PacketDispatcher packetDispatcher;
-	private LocalPlayer localPlayer;
-	private Map<String, RemotedPlayer> players;
+	private final PacketDispatcher packetDispatcher;
+	private Player localPlayer;
+	private Map<String, Player> players;
 
 	public PlayScreen(SpriteBatch batch, String nickname, PacketDispatcher packetDispatcher) {
 		this.nickname = nickname;
@@ -85,20 +80,17 @@ public class PlayScreen implements Screen {
 
 
 		players = new ConcurrentHashMap<>();
-		inputAdapter = new PlayerInputAdapter();
-		localPlayer = new LocalPlayer(Character.ELF, this.inputAdapter, nickname, stage);
+		PlayerInputAdapter inputAdapter = new PlayerInputAdapter();
+		localPlayer = new Player(Character.ELF, inputAdapter, nickname, stage);
 		new Thread(() -> {
-
 				try {
 					packetDispatcher.processPacket(this);
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
-			}) {
+		}).start();
 
-		}.start();
-
-		Gdx.input.setInputProcessor(this.inputAdapter);
+		Gdx.input.setInputProcessor(inputAdapter);
 	}
 
 	@Override
@@ -140,20 +132,50 @@ public class PlayScreen implements Screen {
 
 	public void updatePlayer(PlayerData data) {
 		if (data.getNickname().equals(localPlayer.getNickname())) {
-
+			//predictNewData(data);
+			//localPlayer.setData(data);
 		} else {
-			RemotedPlayer player = players.get(data.getNickname());
+			Player player = players.get(data.getNickname());
 			if (player == null) {
 				joinPlayer(data);
 			}
 			player = players.get(data.getNickname());
-			player.setCoords(data.getX(), data.getY());
+			predictNewData(data);
+			player.setData(data);
+			player.updateAdapter();
 		}
 	}
 
+	public void predictNewData(PlayerData data) {
+		float dx = 0;
+		float dy = 0;
+		if (data.isLeftPressed()) {
+			dx -= 1;
+		}
+		if (data.isRightPressed()) {
+			dx += 1;
+		}
+		if (data.isUpPressed()) {
+			dy += 1;
+		}
+		if (data.isDownPressed()) {
+			dy -= 1;
+		}
+		if (dx * dx + dy * dy > 1.5) {
+			dx /= Math.sqrt(2);
+			dy /= Math.sqrt(2);
+		}
+		Date now = new Date();
+		float velocity = 0.05f;
+		long time = now.getTime() - data.getDate().getTime();
+
+		data.setX(data.getX() + dx * velocity * time);
+		data.setY(data.getY() + dy * velocity * time);
+		data.setDate(now);
+	}
+
 	public void joinPlayer(PlayerData data) {
-		RemotedPlayer player = new RemotedPlayer(data.getNickname());
-//		System.out.println(data);
+		Player player = new Player(Character.ELF, new PlayerInputAdapter(), data.getNickname(), stage);
 		players.put(data.getNickname(), player);
 	}
 
@@ -161,14 +183,11 @@ public class PlayScreen implements Screen {
 		players.remove(nickname);
 	}
 
+
+
 	private void drawPlayers() {
-//		System.out.println("count remoted on client " + localPlayer.getNickname() + " " + players.values().size());
 		localPlayer.draw(batch);
-		for (RemotedPlayer player : players.values()) {
-			if (player.getEntitySprite() == null) {
-				Sprite newSprite = new Sprite(new Texture("ElfBasic.png"));
-				player.setEntitySprite(newSprite);
-			}
+		for (Player player : players.values()) {
 			player.draw(batch);
 		}
 	}
@@ -193,9 +212,5 @@ public class PlayScreen implements Screen {
 		stage.dispose();
 		map.dispose();
 		renderer.dispose();
-	}
-
-	public OrthographicCamera getCamera() {
-		return camera;
 	}
 }

@@ -23,8 +23,7 @@ public class Server {
 
 	private DatagramSocket socket;
 	private static final int port = 24120;
-	//private static final String MAP = "firstmap.tmx";
-	//private MapChecker mapChecker;
+	private MapChecker mapChecker;
 
 	private static final int TIMEOUT = 5;
 	private Map<String, Client> players;
@@ -40,7 +39,6 @@ public class Server {
 		try {
 			players = new ConcurrentHashMap<>();
 			socket = new DatagramSocket(port);
-            //mapChecker = new MapChecker(MAP);
 
 			serverMessage("Server is started!");
 			listenPackets();
@@ -60,7 +58,6 @@ public class Server {
 		while (true) {
 			socket.receive(packet);
 			String received = new String(packet.getData(), 0, packet.getLength());
-//			System.out.println(received);
 			processPacket(received, packet.getAddress().getHostAddress(), packet.getPort());
 		}
 	}
@@ -119,7 +116,6 @@ public class Server {
 				try {
 					Thread.sleep(TIMEOUT * 1000);
 				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 				if (!client.isConnectionRefreshed()) {
@@ -172,11 +168,13 @@ public class Server {
 
 			if (distance / time > SPEED_LIMIT) return false;
 
-			//if (!mapChecker.isInsideWorld(newData.getX(), newData.getY())) return false;
-			//if (mapChecker.isInsideObstacle(newData.getX(), newData.getY())) return false;
-			//if (mapChecker.isInsideShelter(newData.getX(), newData.getY())) {
-			//	newData.setCurrentState(PlayerData.State.HIDING);
-			//}
+			if (mapChecker != null) {
+				if (!mapChecker.isInsideWorld(newData.getX(), newData.getY())) return false;
+				if (mapChecker.isInsideObstacle(newData.getX(), newData.getY())) return false;
+				if (mapChecker.isInsideShelter(newData.getX(), newData.getY())) {
+					newData.setCurrentState(PlayerData.State.HIDING);
+				}
+			}
 		} else if (packetPlayer.getType() == PacketType.JOIN) {
 
 		}
@@ -185,7 +183,6 @@ public class Server {
 	}
 
 	private void dispatchMessageAll(PacketPlayer packetPlayer) {
-		System.out.println(new Date().getTime());
 		byte[] buf = null;
 		try {
 			String message = mapper.writeValueAsString(packetPlayer);
@@ -197,16 +194,14 @@ public class Server {
 		if (buf != null) {
 			for (Client client : players.values()) {
 				try {
-					InetAddress adress = InetAddress.getByName(client.getIp());
+					InetAddress address = InetAddress.getByName(client.getIp());
 					int port = client.getPort();
 
-					DatagramPacket packet = new DatagramPacket(buf, buf.length, adress, port);
+					DatagramPacket packet = new DatagramPacket(buf, buf.length, address, port);
 					socket.send(packet);
 				} catch (UnknownHostException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				} catch (IOException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 			}
