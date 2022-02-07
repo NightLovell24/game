@@ -141,38 +141,9 @@ public class PlayScreen implements Screen {
 				joinPlayer(data);
 			}
 			player = players.get(data.getNickname());
-			predictNewData(data);
 			player.setData(data);
 			player.updateAdapter();
 		}
-	}
-
-	public void predictNewData(PlayerData data) {
-		float dx = 0;
-		float dy = 0;
-		if (data.isLeftPressed()) {
-			dx -= 1;
-		}
-		if (data.isRightPressed()) {
-			dx += 1;
-		}
-		if (data.isUpPressed()) {
-			dy += 1;
-		}
-		if (data.isDownPressed()) {
-			dy -= 1;
-		}
-		if (dx * dx + dy * dy > 1.5) {
-			dx /= Math.sqrt(2);
-			dy /= Math.sqrt(2);
-		}
-		Date now = new Date();
-		float velocity = 0.050f;
-		long time = now.getTime() - data.getDate().getTime();
-
-		data.setX(data.getX() + dx * velocity * time);
-		data.setY(data.getY() + dy * velocity * time);
-		data.setDate(now);
 	}
 
 	public void joinPlayer(PlayerData data) {
