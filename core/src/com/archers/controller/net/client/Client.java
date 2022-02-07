@@ -3,13 +3,11 @@ package com.archers.controller.net.client;
 import com.archers.model.PlayerData;
 
 public class Client {
-
 	private PlayerData data;
 
 	private String ip;
 	private int port;
 	private boolean connectionRefreshed;
-
 	public Client(PlayerData data, String ip, int port) {
 
 		this.data = data;

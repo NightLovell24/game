@@ -32,6 +32,7 @@ public class PlayerData {
 	private boolean downPressed;
 	private float mouseAngleX;
 	private float mouseAngleY;
+	private boolean stopped;
 
 
 	public String getNickname() {
@@ -136,6 +137,14 @@ public class PlayerData {
 
 	public void setMouseAngleY(float mouseAngleY) {
 		this.mouseAngleY = mouseAngleY;
+	}
+
+	public boolean isStopped() {
+		return stopped;
+	}
+
+	public void setStopped(boolean stopped) {
+		this.stopped = stopped;
 	}
 
 	@Override

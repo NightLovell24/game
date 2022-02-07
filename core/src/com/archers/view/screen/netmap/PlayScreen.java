@@ -132,8 +132,9 @@ public class PlayScreen implements Screen {
 
 	public void updatePlayer(PlayerData data) {
 		if (data.getNickname().equals(localPlayer.getNickname())) {
-			//predictNewData(data);
-			//localPlayer.setData(data);
+			if (data.isStopped()) {
+				localPlayer.setData(data);
+			}
 		} else {
 			Player player = players.get(data.getNickname());
 			if (player == null) {
@@ -166,7 +167,7 @@ public class PlayScreen implements Screen {
 			dy /= Math.sqrt(2);
 		}
 		Date now = new Date();
-		float velocity = 0.05f;
+		float velocity = 0.050f;
 		long time = now.getTime() - data.getDate().getTime();
 
 		data.setX(data.getX() + dx * velocity * time);

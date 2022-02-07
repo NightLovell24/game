@@ -13,6 +13,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import com.archers.controller.net.client.Client;
 import com.archers.controller.net.client.PacketType;
+import com.archers.controller.net.server.map.MapChecker;
 import com.archers.model.PacketPlayer;
 
 import com.archers.model.PlayerData;
@@ -23,6 +24,7 @@ public class Server {
 
 	private DatagramSocket socket;
 	private static final int port = 24120;
+	private static final String MAP = "assets/map.tmx";
 	private MapChecker mapChecker;
 
 	private static final int TIMEOUT = 5;
@@ -39,6 +41,7 @@ public class Server {
 		try {
 			players = new ConcurrentHashMap<>();
 			socket = new DatagramSocket(port);
+			mapChecker = new MapChecker(MAP);
 
 			serverMessage("Server is started!");
 			listenPackets();
@@ -139,6 +142,8 @@ public class Server {
 					Client client = players.get(data.getNickname());
 					if (client != null) {
 						refreshPlayer(data.getNickname());
+						client.getData().setDate(new Date());
+						client.getData().setStopped(true);
 						dispatchMessageAll(new PacketPlayer(client.getData(), PacketType.MOVE));
 					}
 				}
@@ -166,14 +171,12 @@ public class Server {
 					sqrt(Math.pow(oldData.getX() - newData.getX(), 2) + Math.pow(oldData.getY() - newData.getY(), 2));
 			long time = newData.getDate().getTime() - oldData.getDate().getTime();
 
-			if (distance / time > SPEED_LIMIT) return false;
+			//if (distance / time > SPEED_LIMIT) return false;
 
-			if (mapChecker != null) {
-				if (!mapChecker.isInsideWorld(newData.getX(), newData.getY())) return false;
-				if (mapChecker.isInsideObstacle(newData.getX(), newData.getY())) return false;
-				if (mapChecker.isInsideShelter(newData.getX(), newData.getY())) {
-					newData.setCurrentState(PlayerData.State.HIDING);
-				}
+			if (!mapChecker.isInsideWorld(newData.getX(), newData.getY())) return false;
+			if (mapChecker.isInsideObstacle(newData.getX(), newData.getY())) return false;
+			if (mapChecker.isInsideShelter(newData.getX(), newData.getY())) {
+				newData.setCurrentState(PlayerData.State.HIDING);
 			}
 		} else if (packetPlayer.getType() == PacketType.JOIN) {
 

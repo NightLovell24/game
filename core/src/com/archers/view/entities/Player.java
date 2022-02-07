@@ -22,6 +22,7 @@ public class Player {
 
     private static final float STEP = 0.8f;
     private static final Texture BASIC_ELF = new Texture("ElfBasic.png");
+    private static final Texture INVISIBLE = new Texture("invisible.png");
 
     public Player(Character character, PlayerInputAdapter adapter, String nickname, Stage stage) {
         this.adapter = adapter;
@@ -31,16 +32,23 @@ public class Player {
     }
 
     public void draw(Batch batch) {
+        updateLabel();
         updateSprite();
         updateCoords();
         updateButtons();
-        updateLabel();
         batch.draw(entitySprite, data.getX(), data.getY());
     }
 
     private void updateSprite() {
         if (entitySprite == null) {
             entitySprite = new Sprite(BASIC_ELF);
+        }
+        if (data.getCurrentState() == PlayerData.State.HIDING) {
+            entitySprite.setTexture(INVISIBLE);
+            nicknameLabel.setVisible(false);
+        } else {
+            entitySprite.setTexture(BASIC_ELF);
+            nicknameLabel.setVisible(true);
         }
     }
 
@@ -80,6 +88,7 @@ public class Player {
     }
 
     private void updateButtons() {
+        data.setStopped(false);
         data.setUpPressed(adapter.upPressed);
         data.setDownPressed(adapter.downPressed);
         data.setLeftPressed(adapter.leftPressed);
